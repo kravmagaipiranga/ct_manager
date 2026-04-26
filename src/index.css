@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+@theme {
+  --color-krav-bg: var(--theme-bg);
+  --color-krav-card: var(--theme-card);
+  --color-krav-sidebar: var(--theme-sidebar);
+  --color-krav-accent: var(--theme-accent);
+  --color-krav-accent-light: var(--theme-accent-light);
+  --color-krav-accent-lighter: var(--theme-accent-lighter);
+  --color-krav-text: var(--theme-text);
+  --color-krav-muted: var(--theme-muted);
+  --color-krav-border: var(--theme-border);
+  --color-krav-success: #10b981;
+  --color-krav-warning: #f59e0b;
+  --color-krav-danger: #ef4444;
+}
+
+@layer base {
+  :root {
+    --theme-bg: #F2F2F2;
+    --theme-card: #FFFFFF;
+    --theme-sidebar: #FFFFFF;
+    --theme-accent: #00008e;
+    --theme-accent-light: #233ED9;
+    --theme-accent-lighter: #5F72D9;
+    --theme-text: #0D0D0D;
+    --theme-muted: #6b7280;
+    --theme-border: #e5e7eb;
+  }
+
+  :root.dark {
+    --theme-bg: #09090b;
+    --theme-card: #18181b;
+    --theme-sidebar: #18181b;
+    --theme-accent: #3b5bdb;
+    --theme-accent-light: #4c6ef5;
+    --theme-accent-lighter: #748ffc;
+    --theme-text: #fafafa;
+    --theme-muted: #a1a1aa;
+    --theme-border: #27272a;
+  }
+}
+
+body {
+  @apply bg-krav-bg text-krav-text font-sans antialiased;
+}
+
+/* Hide scrollbar globally but preserve scrolling */
+* {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+*::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
