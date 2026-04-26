@@ -202,8 +202,8 @@ export default function Schedule() {
         </button>
       </div>
 
-      <div className="bg-krav-card border border-krav-border rounded-xl shadow-sm flex flex-col overflow-x-auto">
-        <div className="w-full grid grid-cols-7 border-b border-krav-border bg-black/[0.02] min-w-[800px]">
+      <div className="bg-krav-card border border-krav-border rounded-xl shadow-sm flex flex-col overflow-x-auto h-full min-h-[500px]">
+        <div className="w-full grid grid-cols-7 border-b border-krav-border bg-black/[0.02] min-w-[800px] shrink-0">
           {DAYS.map((day, i) => (
             <div key={day} className={cn("px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-krav-text border-krav-border", i !== 6 && "border-r")}>
               {day}
@@ -211,55 +211,64 @@ export default function Schedule() {
           ))}
         </div>
         
-        <div className="w-full grid grid-cols-7 min-w-[800px]">
+        <div className="w-full grid grid-cols-7 min-w-[800px] flex-1">
            {DAYS.map((_, dayIndex) => {
              const dayClasses = getClassesByDay(dayIndex);
+             
+             // Group by time
+             const grouped: Record<string, typeof dayClasses> = {};
+             dayClasses.forEach(c => {
+               if(!grouped[c.time]) grouped[c.time] = [];
+               grouped[c.time].push(c);
+             });
+
              return (
                <div key={dayIndex} className={cn("p-2 border-krav-border flex flex-col gap-2 min-h-full", dayIndex !== 6 && "border-r")}>
-                 {dayClasses.map((session) => (
+                 {Object.entries(grouped).map(([time, sessions]) => (
                    <div 
-                     key={session.id} 
-                     onClick={() => handleEdit(session)}
-                     className="group bg-krav-card border border-krav-border p-3 rounded-lg hover:border-krav-accent transition-all cursor-pointer relative overflow-hidden shadow-sm"
+                     key={time} 
+                     className="bg-krav-card border border-krav-border p-2 rounded-lg relative shadow-sm"
                    >
-                     <div className="absolute top-0 left-0 w-1 bg-krav-accent h-full opacity-50"></div>
-                     {/* Time and details */}
-                     <div className="flex justify-between items-start pl-2 mb-2">
-                       <div className="flex items-center gap-1 text-krav-text font-bold tracking-tight">
-                         <Clock className="w-3.5 h-3.5 text-krav-muted" />
-                         {session.time}
-                       </div>
+                     {/* Time Header */}
+                     <div className="flex items-center gap-1 text-krav-text font-bold tracking-tight mb-2 px-1">
+                       <Clock className="w-3 h-3 text-krav-muted" />
+                       <span className="text-xs">{time}</span>
                      </div>
                      
-                     <p className="text-xs font-medium text-krav-text pl-2 mb-2">{session.name}</p>
+                     <div className="flex flex-col gap-1.5">
+                       {sessions.map(session => (
+                         <div 
+                           key={session.id}
+                           onClick={() => handleEdit(session)}
+                           className="group border border-transparent hover:border-krav-accent/30 hover:bg-black/5 p-1.5 rounded transition-all cursor-pointer relative overflow-hidden"
+                         >
+                           <p className="text-[11px] font-bold text-krav-text leading-tight">{session.name}</p>
 
-                     {/* Tags container */}
-                     <div className="pl-2 flex flex-wrap gap-1">
-                        {(session.allowedBelts || []).map((belt, idx) => (
-                           <div key={`badge-${idx}`}>
-                             <BeltBadge belt={belt} className="scale-[0.8] origin-left -ml-1 text-[9px] px-1.5 py-0" />
+                           {/* Tags container */}
+                           <div className="flex flex-wrap gap-1 mt-1">
+                              {(session.allowedBelts || []).map((belt, idx) => (
+                                 <div key={`badge-${idx}`}>
+                                   <BeltBadge belt={belt} className="scale-[0.7] origin-left -ml-1 text-[8px] px-1 py-0" />
+                                 </div>
+                              ))}
+                              {(session.otherModalities || []).map((mod, i) => (
+                                 <span key={i} className="text-[8px] font-bold px-1 py-0.5 rounded bg-[#e11d48]/10 text-[#e11d48] border border-[#e11d48]/20 whitespace-nowrap">
+                                   {mod}
+                                 </span>
+                              ))}
+                              {(!session.allowedBelts?.length && !session.otherModalities?.length) && (
+                                <span className="text-[9px] text-krav-muted">Sem restrição</span>
+                              )}
                            </div>
-                        ))}
-                        {(session.otherModalities || []).map((mod, i) => (
-                           <span key={i} className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#e11d48]/10 text-[#e11d48] border border-[#e11d48]/20 whitespace-nowrap">
-                             {mod}
-                           </span>
-                        ))}
-                        {(!session.allowedBelts?.length && !session.otherModalities?.length) && (
-                          <span className="text-[10px] text-krav-muted">Sem restrição</span>
-                        )}
-                     </div>
-                     
-                     <div className="pl-2 mt-2 pt-2 border-t border-krav-border flex items-center justify-between">
-                       <p className="text-[10px] text-krav-muted flex items-center gap-1 w-full truncate">
-                         <Users className="w-3 h-3 shrink-0" /> 
-                         <span className="truncate">{session.instructorName}</span>
-                       </p>
-                     </div>
-                     
-                     {/* Edit Hover */}
-                     <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-krav-card p-1 rounded-md shadow-sm border border-krav-border text-krav-accent">
-                        <Edit3 className="w-3.5 h-3.5" />
+                           
+                           <div className="mt-1 pt-1 border-t border-krav-border/50 flex flex-col border-dashed">
+                             <p className="text-[9px] text-krav-muted flex items-center gap-1 w-full truncate">
+                               <Users className="w-2.5 h-2.5 shrink-0" /> 
+                               <span className="truncate">{session.instructorName}</span>
+                             </p>
+                           </div>
+                         </div>
+                       ))}
                      </div>
                    </div>
                  ))}
@@ -275,11 +284,9 @@ export default function Schedule() {
         </div>
       </div>
 
-      {/* Slideover Panel (Fixed right overlay) */}
+      {/* Form Panel (In-line) */}
       {editingSession && (
-        <>
-          <div className="fixed inset-0 bg-black/50 z-40" onClick={() => setEditingSession(null)}></div>
-          <div className="fixed inset-y-0 right-0 max-w-sm w-full flex flex-col bg-krav-card border-l border-krav-border shadow-2xl z-50 animate-in slide-in-from-right duration-300">
+          <div className="max-w-sm w-full shrink-0 flex flex-col bg-krav-card border border-krav-border rounded-xl shadow-sm h-full overflow-hidden">
              <div className="p-5 border-b border-krav-border bg-black/5 flex justify-between items-center shrink-0">
                <div>
                   <h3 className="font-bold flex items-center gap-2 text-krav-text">
@@ -426,7 +433,6 @@ export default function Schedule() {
                 </div>
              </form>
           </div>
-        </>
       )}
     </div>
   );

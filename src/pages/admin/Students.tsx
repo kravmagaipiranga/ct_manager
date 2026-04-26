@@ -209,9 +209,9 @@ export default function Students() {
           <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
         </div>
 
-        {/* Edit Sidebar Overlay / In-line */}
+        {/* Edit Form / In-line */}
         {editingStudent && (
-          <div className="flex-1 max-w-sm w-full shrink-0 flex flex-col bg-krav-card border border-krav-border rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.1)] xl:shadow-sm z-20 xl:z-auto fixed right-0 top-0 h-screen overflow-y-auto xl:h-auto xl:sticky xl:top-24 duration-300">
+          <div className="flex-1 max-w-sm w-full shrink-0 flex flex-col bg-krav-card border border-krav-border rounded-xl shadow-sm overflow-hidden h-full">
              <div className="p-5 border-b border-krav-border bg-krav-bg/50 flex justify-between items-center shrink-0">
                <h3 className="font-bold flex items-center gap-2 text-krav-text">
                  <UserCircle className="w-5 h-5 text-krav-accent" />
@@ -222,7 +222,7 @@ export default function Students() {
                </button>
              </div>
              
-             <form onSubmit={handleSaveEdit} className="p-5 flex flex-col gap-5 bg-krav-card">
+             <form onSubmit={handleSaveEdit} className="p-5 flex-1 overflow-y-auto flex flex-col gap-5 bg-krav-card">
                 <div className="flex flex-col gap-3">
                    <ContactActions phone={editingStudent.phone} email={editingStudent.email} iconOnly={false} align="center" className="pb-3 border-b border-krav-border" />
                 </div>

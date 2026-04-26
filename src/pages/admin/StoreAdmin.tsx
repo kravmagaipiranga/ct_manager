@@ -292,9 +292,9 @@ export default function StoreAdmin() {
           )}
         </div>
 
-        {/* --- PRODUCT EDIT / CREATE SLIDE OVEr --- */}
+        {/* --- PRODUCT EDIT / CREATE FORM IN-LINE --- */}
         {activeTab === 'PRODUCTS' && isFormOpen && (
-          <div className="flex-1 max-w-sm w-full shrink-0 flex flex-col bg-krav-card border border-krav-border rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.1)] xl:shadow-sm overflow-hidden h-full z-20 xl:z-auto fixed right-0 top-0 xl:relative xl:right-auto animate-in slide-in-from-right xl:slide-in-from-right-none duration-300">
+          <div className="flex-1 max-w-sm w-full shrink-0 flex flex-col bg-krav-card border border-krav-border rounded-xl shadow-sm overflow-hidden h-full">
              <div className="p-5 border-b border-krav-border bg-black/5 flex justify-between items-center shrink-0">
                <h3 className="font-bold flex items-center gap-2 text-krav-text">
                  <Box className="w-5 h-5 text-krav-accent" />

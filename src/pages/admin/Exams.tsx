@@ -75,67 +75,68 @@ export default function Exams() {
         </button>
       </div>
 
-      <div className="w-full">
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {exams.map(exam => (
-            <div key={exam.id} className="bg-krav-card border border-krav-border rounded-xl p-5 shadow-sm flex flex-col gap-4 relative overflow-hidden group">
-              <div className="absolute top-0 left-0 w-1 bg-krav-accent h-full opacity-50"></div>
-              <div className="flex justify-between items-start pl-2">
-                 <div className="flex flex-col">
-                   <h3 className="font-bold text-lg leading-tight text-krav-text">{exam.title}</h3>
-                   <div className="flex items-center gap-1.5 mt-2">
-                     <Medal className="w-4 h-4 text-krav-accent" />
-                     <span className="text-xs font-semibold text-krav-text uppercase tracking-wider">Exame de Graduação</span>
+      <div className="flex flex-col xl:flex-row gap-6 flex-1 min-h-0">
+        <div className="flex-1 overflow-y-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-12">
+            {exams.map(exam => (
+              <div key={exam.id} className="bg-krav-card border border-krav-border rounded-xl p-5 shadow-sm flex flex-col gap-4 relative overflow-hidden group">
+                <div className="absolute top-0 left-0 w-1 bg-krav-accent h-full opacity-50"></div>
+                <div className="flex justify-between items-start pl-2">
+                   <div className="flex flex-col">
+                     <h3 className="font-bold text-lg leading-tight text-krav-text">{exam.title}</h3>
+                     <div className="flex items-center gap-1.5 mt-2">
+                       <Medal className="w-4 h-4 text-krav-accent" />
+                       <span className="text-xs font-semibold text-krav-text uppercase tracking-wider">Exame de Graduação</span>
+                     </div>
                    </div>
-                 </div>
-              </div>
-              
-              <div className="pl-2 flex-col flex gap-2">
-                 <p className="text-xs text-krav-muted line-clamp-2">{exam.description}</p>
-                 <p className="text-[10px] text-krav-muted font-bold mt-1 bg-krav-bg self-start px-2 py-1 rounded">
-                   {(exam.allowedStudentIds || []).length} alunos liberados
-                 </p>
-              </div>
+                </div>
+                
+                <div className="pl-2 flex-col flex gap-2">
+                   <p className="text-xs text-krav-muted line-clamp-2">{exam.description}</p>
+                   <p className="text-[10px] text-krav-muted font-bold mt-1 bg-krav-bg self-start px-2 py-1 rounded">
+                     {(exam.allowedStudentIds || []).length} alunos liberados
+                   </p>
+                </div>
 
-              <div className="mt-auto pt-4 border-t border-krav-border grid grid-cols-2 gap-3 pl-2">
-                 <div className="bg-krav-bg px-3 py-2 rounded-lg flex flex-col gap-1">
-                   <span className="text-[10px] uppercase font-bold text-krav-muted tracking-wide flex items-center gap-1">
-                     <CalendarIcon className="w-3 h-3" /> Data
-                   </span>
-                   <span className="text-xs font-bold text-krav-text">
-                     {new Date(exam.date).toLocaleDateString('pt-BR')} às {new Date(exam.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit'})}
-                   </span>
-                 </div>
-                 
-                 <div className="bg-krav-bg px-3 py-2 rounded-lg flex flex-col gap-1">
-                   <span className="text-[10px] uppercase font-bold text-krav-muted tracking-wide flex items-center gap-1">
-                     <Users className="w-3 h-3" /> Inscritos
-                   </span>
-                   <span className="text-xs font-bold text-krav-text">
-                     {exam.registeredCount} de {exam.capacity || 50}
-                   </span>
-                 </div>
-              </div>
+                <div className="mt-auto pt-4 border-t border-krav-border grid grid-cols-2 gap-3 pl-2">
+                   <div className="bg-krav-bg px-3 py-2 rounded-lg flex flex-col gap-1">
+                     <span className="text-[10px] uppercase font-bold text-krav-muted tracking-wide flex items-center gap-1">
+                       <CalendarIcon className="w-3 h-3" /> Data
+                     </span>
+                     <span className="text-xs font-bold text-krav-text">
+                       {new Date(exam.date).toLocaleDateString('pt-BR')} às {new Date(exam.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit'})}
+                     </span>
+                   </div>
+                   
+                   <div className="bg-krav-bg px-3 py-2 rounded-lg flex flex-col gap-1">
+                     <span className="text-[10px] uppercase font-bold text-krav-muted tracking-wide flex items-center gap-1">
+                       <Users className="w-3 h-3" /> Inscritos
+                     </span>
+                     <span className="text-xs font-bold text-krav-text">
+                       {exam.registeredCount} de {exam.capacity || 50}
+                     </span>
+                   </div>
+                </div>
 
-              <div className="pl-2 mt-4">
-                 <button onClick={() => setManagingExam(exam)} className="w-full py-2 bg-krav-accent/10 hover:bg-krav-accent hover:text-white text-krav-accent transition-colors rounded-lg text-sm font-bold border border-krav-accent/20">
-                    Liberar Alunos
-                 </button>
+                <div className="pl-2 mt-4">
+                   <button onClick={() => setManagingExam(exam)} className="w-full py-2 bg-krav-accent/10 hover:bg-krav-accent hover:text-white text-krav-accent transition-colors rounded-lg text-sm font-bold border border-krav-accent/20">
+                      Liberar Alunos
+                   </button>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
 
-          {exams.length === 0 && (
-             <div className="col-span-full py-12 text-center text-sm text-krav-muted border border-dashed border-krav-border rounded-xl bg-krav-card">
-               Nenhum exame de graduação agendado no momento. <br/><span className="text-xs opacity-70">Crie um através do menu "Eventos Gerais".</span>
-             </div>
-          )}
+            {exams.length === 0 && (
+               <div className="col-span-full py-12 text-center text-sm text-krav-muted border border-dashed border-krav-border rounded-xl bg-krav-card">
+                 Nenhum exame de graduação agendado no momento. <br/><span className="text-xs opacity-70">Crie um através do menu "Eventos Gerais".</span>
+               </div>
+            )}
+          </div>
         </div>
-      </div>
 
-       {/* SlideOver for Managing Exam Eligibility */}
+       {/* Form Panel for Managing Exam Eligibility */}
        {managingExam && (
-         <div className="absolute inset-y-0 right-0 w-full md:w-[450px] bg-krav-card border-l border-krav-border shadow-2xl flex flex-col animate-in slide-in-from-right duration-300 z-50">
+         <div className="flex-1 max-w-sm w-full shrink-0 flex flex-col bg-krav-card border border-krav-border rounded-xl shadow-sm h-full overflow-hidden">
             <div className="p-5 border-b border-krav-border bg-black/5 flex justify-between items-center shrink-0">
                <div>
                   <h3 className="font-bold flex items-center gap-2 text-krav-text text-lg">
@@ -203,6 +204,7 @@ export default function Exams() {
 
          </div>
        )}
+      </div>
     </div>
   );
 }
