@@ -103,12 +103,15 @@ export interface Product {
   description: string;
   price: number;
   stock: number;
+  imageUrl?: string;
+  variations?: string[]; // comma-separated strings of variations or just array
 }
 
 export interface OrderItem {
   productId: string;
   quantity: number;
   unitPrice: number;
+  variation?: string;
 }
 
 export interface Order {

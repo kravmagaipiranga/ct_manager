@@ -10,10 +10,11 @@ export default function StudentStore() {
   const placeOrder = useDataStore((state) => state.placeOrder);
   const [searchTerm, setSearchTerm] = useState('');
   
-  const [cart, setCart] = useState<{productId: string, quantity: number}[]>([]);
+  const [cart, setCart] = useState<{productId: string, quantity: number, variation?: string}[]>([]);
   const [isOrdering, setIsOrdering] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [selectedVariations, setSelectedVariations] = useState<Record<string, string>>({});
 
   const getCartTotal = () => {
     return cart.reduce((total, item) => {
@@ -22,19 +23,19 @@ export default function StudentStore() {
     }, 0);
   };
 
-  const addToCart = (productId: string) => {
+  const addToCart = (productId: string, variation?: string) => {
     setCart(prev => {
-      const existing = prev.find(i => i.productId === productId);
+      const existing = prev.find(i => i.productId === productId && i.variation === variation);
       if (existing) {
-        return prev.map(i => i.productId === productId ? { ...i, quantity: i.quantity + 1 } : i);
+        return prev.map(i => (i.productId === productId && i.variation === variation) ? { ...i, quantity: i.quantity + 1 } : i);
       }
-      return [...prev, { productId, quantity: 1 }];
+      return [...prev, { productId, quantity: 1, variation }];
     });
     setOrderSuccess(false);
   };
 
-  const removeFromCart = (productId: string) => {
-    setCart(prev => prev.map(i => i.productId === productId ? { ...i, quantity: i.quantity - 1 } : i).filter(i => i.quantity > 0));
+  const removeFromCart = (productId: string, variation?: string) => {
+    setCart(prev => prev.map(i => (i.productId === productId && i.variation === variation) ? { ...i, quantity: i.quantity - 1 } : i).filter(i => i.quantity > 0));
   };
 
   const handleCheckout = () => {
@@ -77,28 +78,45 @@ export default function StudentStore() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-24">
-            {filteredProducts.map((p) => (
+            {filteredProducts.map((p) => {
+              const currentVar = selectedVariations[p.id] || (p.variations?.[0] ?? '');
+              return (
               <div key={p.id} className="bg-krav-card border text-krav-text border-krav-border rounded-xl p-5 flex flex-col hover:border-krav-accent/50 transition-colors shadow-sm relative overflow-hidden group">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-krav-accent/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="w-12 h-12 bg-krav-bg rounded-lg flex items-center justify-center mb-4 border border-krav-border">
-                  <Tag className="w-6 h-6 text-krav-muted" />
+                <div className="w-full h-32 bg-krav-bg rounded-lg flex items-center justify-center mb-4 border border-krav-border overflow-hidden">
+                  {p.imageUrl ? (
+                     <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />
+                  ) : (
+                     <Tag className="w-6 h-6 text-krav-muted" />
+                  )}
                 </div>
                 <h4 className="font-bold text-sm leading-tight">{p.name}</h4>
                 <p className="text-xs text-krav-muted mt-1 leading-relaxed flex-1">{p.description}</p>
+                {p.variations && p.variations.length > 0 && (
+                  <div className="mt-3">
+                    <select 
+                      value={currentVar}
+                      onChange={(e) => setSelectedVariations({...selectedVariations, [p.id]: e.target.value})}
+                      className="w-full bg-krav-bg border border-krav-border text-krav-text text-xs p-2 rounded outline-none focus:border-krav-accent"
+                    >
+                      {p.variations.map(v => <option key={v} value={v}>{v}</option>)}
+                    </select>
+                  </div>
+                )}
                 <div className="flex justify-between items-end mt-4 pt-4 border-t border-krav-border">
                   <div>
                     <span className="text-xs text-krav-muted block">Preço</span>
                     <span className="font-bold text-lg text-krav-accent">R$ {p.price.toFixed(2).replace('.', ',')}</span>
                   </div>
                   <button 
-                    onClick={() => addToCart(p.id)}
+                    onClick={() => addToCart(p.id, currentVar)}
                     className="bg-krav-text hover:bg-black text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition-transform active:scale-95"
                   >
                     + Add
                   </button>
                 </div>
               </div>
-            ))}
+            )})}
           </div>
       </div>
 
@@ -152,12 +170,13 @@ export default function StudentStore() {
                        <div key={item.productId} className="flex justify-between items-center border-b border-krav-border pb-4 bg-krav-card p-3 rounded-lg border">
                           <div className="flex-1">
                             <p className="text-sm font-bold text-krav-text leading-tight">{product.name}</p>
+                            {item.variation && <p className="text-[10px] text-krav-muted font-bold mt-0.5">Var: {item.variation}</p>}
                             <p className="text-xs text-krav-accent font-semibold mt-1">R$ {(product.price * item.quantity).toFixed(2).replace('.', ',')}</p>
                           </div>
                           <div className="flex items-center gap-3 bg-krav-bg rounded-lg border border-krav-border p-1">
-                            <button onClick={() => removeFromCart(item.productId)} className="w-6 h-6 flex items-center justify-center text-krav-muted hover:text-krav-text"><Minus className="w-3 h-3" /></button>
+                            <button onClick={() => removeFromCart(item.productId, item.variation)} className="w-6 h-6 flex items-center justify-center text-krav-muted hover:text-krav-text"><Minus className="w-3 h-3" /></button>
                             <span className="text-xs font-bold w-4 text-center text-krav-text">{item.quantity}</span>
-                            <button onClick={() => addToCart(item.productId)} className="w-6 h-6 flex items-center justify-center text-krav-muted hover:text-krav-text"><Plus className="w-3 h-3" /></button>
+                            <button onClick={() => addToCart(item.productId, item.variation)} className="w-6 h-6 flex items-center justify-center text-krav-muted hover:text-krav-text"><Plus className="w-3 h-3" /></button>
                           </div>
                        </div>
                      );

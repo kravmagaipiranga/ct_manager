@@ -26,7 +26,9 @@ export interface DataState {
   addStudent: (student: Omit<User, 'id' | 'createdAt'>) => void;
   updateStudent: (id: string, updates: Partial<User>) => void;
   deleteStudent: (id: string) => void;
+  addClass: (newClass: ClassSession) => void;
   updateClass: (id: string, updates: Partial<ClassSession>) => void;
+  deleteClass: (id: string) => void;
   updateEvent: (id: string, updates: Partial<AcademyEvent>) => void;
   updateAppointment: (id: string, updates: Partial<Appointment>) => void;
   deleteEvent: (id: string) => void;
@@ -38,7 +40,7 @@ export interface DataState {
   deleteProduct: (id: string) => void;
 
   // phase 4 actions
-  placeOrder: (studentId: string, items: { productId: string; quantity: number }[]) => void;
+  placeOrder: (studentId: string, items: { productId: string; quantity: number; variation?: string }[]) => void;
   updateOrderStatus: (orderId: string, status: OrderStatus) => void;
   markFinancialPaid: (recordId: string) => void;
 
@@ -161,8 +163,14 @@ export const useDataStore = create<DataState>((set, get) => ({
   deleteStudent: (id) => set((state) => ({
     students: state.students.filter(s => s.id !== id)
   })),
+  addClass: (newClass) => set((state) => ({
+    classes: [...state.classes, newClass]
+  })),
   updateClass: (id, updates) => set((state) => ({
     classes: state.classes.map(c => c.id === id ? { ...c, ...updates } : c)
+  })),
+  deleteClass: (id) => set((state) => ({
+    classes: state.classes.filter(c => c.id !== id)
   })),
   updateEvent: (id, updates) => set((state) => ({
     events: state.events.map(e => e.id === id ? { ...e, ...updates } : e)
@@ -211,7 +219,7 @@ export const useDataStore = create<DataState>((set, get) => ({
       const product = state.products.find(p => p.id === item.productId);
       const price = product?.price || 0;
       total += price * item.quantity;
-      return { productId: item.productId, quantity: item.quantity, unitPrice: price };
+      return { productId: item.productId, quantity: item.quantity, unitPrice: price, variation: item.variation };
     });
 
     return {

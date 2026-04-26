@@ -30,7 +30,19 @@ export default function Schedule() {
     ? allClasses.filter(c => c.instructorId === user.id)
     : allClasses;
   
-  const [editingSession, setEditingSession] = useState<ClassSession | null>(null);
+  const [editingSession, setEditingSession] = useState<{
+    id: string;
+    name: string;
+    instructorId: string;
+    instructorName: string;
+    daysOfWeek: number[];
+    times: string[];
+    durationMinutes: number;
+    allowedBelts: Belt[];
+    otherModalities: string[];
+    // temporary input for a new time
+    newTimeInput?: string;
+  } | null>(null);
 
   const getClassesByDay = (dayIndex: number) => {
     return classes.filter(c => c.dayOfWeek === dayIndex).sort((a, b) => a.time.localeCompare(b.time));
@@ -39,8 +51,11 @@ export default function Schedule() {
   const handleEdit = (session: ClassSession) => {
     setEditingSession({
       ...session,
+      daysOfWeek: [session.dayOfWeek],
+      times: [session.time],
       allowedBelts: session.allowedBelts || [],
-      otherModalities: session.otherModalities || []
+      otherModalities: session.otherModalities || [],
+      newTimeInput: ''
     });
   };
 
@@ -50,26 +65,72 @@ export default function Schedule() {
       name: '',
       instructorId: user?.id || '',
       instructorName: user?.name || '',
-      dayOfWeek: 1, // monday default
-      time: '18:00',
+      daysOfWeek: [1], // monday default
+      times: ['18:00'],
       durationMinutes: 60,
       allowedBelts: [],
-      otherModalities: []
+      otherModalities: [],
+      newTimeInput: ''
     });
   };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingSession) {
+      if (editingSession.times.length === 0) {
+        toast.error('Adicione pelo menos um horário.');
+        return;
+      }
+      if (editingSession.daysOfWeek.length === 0) {
+        toast.error('Selecione pelo menos um dia na semana.');
+        return;
+      }
+
+      const savePromises: any[] = [];
+      const baseSession = {
+        name: editingSession.name,
+        instructorId: editingSession.instructorId,
+        instructorName: editingSession.instructorName,
+        durationMinutes: editingSession.durationMinutes,
+        allowedBelts: editingSession.allowedBelts,
+        otherModalities: editingSession.otherModalities
+      };
+
       if (editingSession.id) {
-         updateClass(editingSession.id, editingSession);
-         toast.success('Horário atualizado com sucesso!');
-      } else {
-         addClassToStore({
-             ...editingSession,
-             id: Math.random().toString(36).substr(2, 9)
+         // Update existing (takes first selected day and first time, ignores multiples for edit safety, or update the main one and create the rest)
+         updateClass(editingSession.id, {
+            ...baseSession,
+            dayOfWeek: editingSession.daysOfWeek[0],
+            time: editingSession.times[0]
          });
-         toast.success('Novo horário adicionado!');
+         
+         // If they added more days or times, create them as new sessions
+         editingSession.daysOfWeek.forEach((day, dIdx) => {
+           editingSession.times.forEach((time, tIdx) => {
+             // Skip the first one since we just updated it
+             if (dIdx === 0 && tIdx === 0) return;
+             addClassToStore({
+               ...baseSession,
+               dayOfWeek: day,
+               time: time,
+               id: Math.random().toString(36).substr(2, 9)
+             });
+           });
+         });
+         toast.success('Horário(s) atualizado(s) com sucesso!');
+      } else {
+         // Create permutations
+         editingSession.daysOfWeek.forEach((day) => {
+           editingSession.times.forEach((time) => {
+             addClassToStore({
+               ...baseSession,
+               dayOfWeek: day,
+               time: time,
+               id: Math.random().toString(36).substr(2, 9)
+             });
+           });
+         });
+         toast.success('Nova(s) turma(s) adicionada(s)!');
       }
       setEditingSession(null);
     }
@@ -238,16 +299,71 @@ export default function Schedule() {
                   <input type="text" value={editingSession.name} onChange={e => setEditingSession({...editingSession, name: e.target.value})} className="w-full bg-krav-card text-sm border border-krav-border focus:border-krav-accent p-2.5 rounded-lg transition-colors outline-none" required />
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="col-span-2">
-                     <label className="block text-xs font-bold text-krav-text mb-1.5 uppercase tracking-wider">Dia da Semana</label>
-                     <select value={editingSession.dayOfWeek} onChange={e => setEditingSession({...editingSession, dayOfWeek: parseInt(e.target.value)})} className="w-full bg-krav-card text-sm border border-krav-border focus:border-krav-accent p-2.5 rounded-lg transition-colors outline-none font-medium">
-                        {DAYS.map((day, i) => <option key={i} value={i}>{day}</option>)}
-                     </select>
+                <div className="grid grid-cols-1 gap-4">
+                  <div>
+                     <label className="block text-xs font-bold text-krav-text mb-1.5 uppercase tracking-wider">Dias da Semana</label>
+                     <div className="flex flex-wrap gap-2">
+                       {DAYS.map((day, i) => {
+                         const isSelected = editingSession.daysOfWeek.includes(i);
+                         return (
+                           <button
+                             type="button"
+                             key={i}
+                             onClick={() => {
+                               const arr = [...editingSession.daysOfWeek];
+                               if (isSelected) {
+                                 setEditingSession({ ...editingSession, daysOfWeek: arr.filter(d => d !== i) });
+                               } else {
+                                 setEditingSession({ ...editingSession, daysOfWeek: [...arr, i] });
+                               }
+                             }}
+                             className={cn(
+                               "px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors",
+                               isSelected ? "bg-krav-accent text-white border-krav-accent" : "bg-krav-card text-krav-text border-krav-border hover:border-krav-muted"
+                             )}
+                           >
+                             {day.substring(0,3)}
+                           </button>
+                         )
+                       })}
+                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-krav-text mb-1.5 uppercase tracking-wider">Horário</label>
-                    <input type="time" value={editingSession.time} onChange={e => setEditingSession({...editingSession, time: e.target.value})} className="w-full bg-krav-card text-sm border border-krav-border focus:border-krav-accent p-2.5 rounded-lg transition-colors outline-none font-medium" required />
+                    <label className="block text-xs font-bold text-krav-text mb-1.5 uppercase tracking-wider">Horários</label>
+                    <div className="flex gap-2 mb-2">
+                       <input 
+                         type="time" 
+                         value={editingSession.newTimeInput || ''} 
+                         onChange={e => setEditingSession({...editingSession, newTimeInput: e.target.value})} 
+                         className="flex-1 bg-krav-card text-sm border border-krav-border focus:border-krav-accent p-2.5 rounded-lg transition-colors outline-none font-medium" 
+                       />
+                       <button
+                         type="button"
+                         onClick={() => {
+                           if (editingSession.newTimeInput && !editingSession.times.includes(editingSession.newTimeInput)) {
+                             setEditingSession({
+                               ...editingSession, 
+                               times: [...editingSession.times, editingSession.newTimeInput],
+                               newTimeInput: ''
+                             });
+                           }
+                         }}
+                         className="bg-krav-card border border-krav-border text-krav-text font-bold px-4 rounded-lg hover:bg-black/5"
+                       >
+                         Add
+                       </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {editingSession.times.map((t, idx) => (
+                        <span key={idx} className="bg-krav-bg border border-krav-border px-2 py-1 rounded text-xs font-bold flex items-center gap-1">
+                          {t}
+                          <button type="button" onClick={() => setEditingSession({...editingSession, times: editingSession.times.filter((_, i) => i !== idx)})} className="text-krav-danger hover:text-red-700 p-0.5"><X className="w-3 h-3"/></button>
+                        </span>
+                      ))}
+                      {editingSession.times.length === 0 && (
+                        <span className="text-[10px] text-krav-muted italic">Nenhum horário adicionado.</span>
+                      )}
+                    </div>
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-krav-text mb-1.5 uppercase tracking-wider">Duração (min)</label>

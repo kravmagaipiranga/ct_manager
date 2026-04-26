@@ -5,6 +5,7 @@ import { BeltBadge } from '../../components/shared/BeltBadge';
 import { StatusPill } from '../../components/shared/StatusPill';
 import { ContactActions } from '../../components/shared/ContactActions';
 import { Search, Filter, Plus, UserCircle, X, Edit3, Save, Download, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { Belt, Status, User } from '../../types';
 import { Pagination } from '../../components/shared/Pagination';
 import { exportToCSV } from '../../lib/csv';
@@ -72,8 +73,10 @@ export default function Instructors() {
     if (editingInstructor) {
       if (editingInstructor.id) {
         updateStudent(editingInstructor.id, editingInstructor);
+        toast.success('Instrutor atualizado com sucesso!');
       } else {
         addStudent(editingInstructor);
+        toast.success('Novo instrutor cadastrado com sucesso!');
       }
       setEditingInstructor(null);
     }
@@ -91,12 +94,14 @@ export default function Instructors() {
       ],
       'Relatorio_Instrutores'
     );
+    toast.success('Exportação iniciada!');
   };
 
   const handleDelete = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (confirm('Tem certeza que deseja excluir este instrutor? Esta ação não pode ser desfeita.')) {
       deleteStudent(id);
+      toast.success('Instrutor removido com sucesso!');
     }
   };
 

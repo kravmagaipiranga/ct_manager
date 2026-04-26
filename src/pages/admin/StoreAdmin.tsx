@@ -5,6 +5,7 @@ import { ShoppingBag, Box, Package, Check, Plus, Edit, Trash2, X, Save, Download
 import { ContactActions } from '../../components/shared/ContactActions';
 import { OrderStatus, Product } from '../../types';
 import { Pagination } from '../../components/shared/Pagination';
+import { exportToCSV } from '../../lib/csv';
 import { toast } from 'sonner';
 
 export default function StoreAdmin() {
@@ -33,7 +34,7 @@ export default function StoreAdmin() {
   // Form State
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [formData, setFormData] = useState({ name: '', description: '', price: 0, stock: 0, imageUrl: '' });
+  const [formData, setFormData] = useState({ name: '', description: '', price: 0, stock: 0, imageUrl: '', variationsString: '' });
 
   // Pagination State
   const [ordersPage, setOrdersPage] = useState(1);
@@ -86,24 +87,29 @@ export default function StoreAdmin() {
          description: product.description || '',
          price: product.price,
          stock: product.stock || 0,
-         imageUrl: product.imageUrl || ''
+         imageUrl: product.imageUrl || '',
+         variationsString: product.variations ? product.variations.join(', ') : ''
        });
     } else {
        setEditingId(null);
-       setFormData({ name: '', description: '', price: 0, stock: 0, imageUrl: '' });
+       setFormData({ name: '', description: '', price: 0, stock: 0, imageUrl: '', variationsString: '' });
     }
     setIsFormOpen(true);
   };
 
   const handleSaveProduct = (e: React.FormEvent) => {
     e.preventDefault();
+    const saveData = {
+       ...formData,
+       variations: formData.variationsString.split(',').map(s => s.trim()).filter(Boolean)
+    };
     if (editingId) {
-      updateProduct(editingId, formData);
+      updateProduct(editingId, saveData);
       toast.success('Produto atualizado com sucesso!');
     } else {
       addProduct({
          id: Math.random().toString(36).substr(2, 9),
-         ...formData
+         ...saveData
       });
       toast.success('Produto cadastrado com sucesso!');
     }
@@ -198,7 +204,17 @@ export default function StoreAdmin() {
                              </div>
                           </td>
                           <td className="py-4 px-6 text-sm text-krav-text">
-                            {order.items.reduce((acc, curr) => acc + curr.quantity, 0)} itens
+                            <ul className="list-disc pl-4 text-xs space-y-1">
+                               {order.items.map((i, idx) => {
+                                  const prod = products.find(p => p.id === i.productId);
+                                  return (
+                                     <li key={idx}>
+                                        {i.quantity}x {prod?.name || 'Produto Removido'}
+                                        {i.variation && <span className="font-bold text-krav-accent ml-1">({i.variation})</span>}
+                                     </li>
+                                  )
+                               })}
+                            </ul>
                           </td>
                           <td className="py-4 px-6 text-sm font-bold text-krav-text">
                             R$ {order.total.toFixed(2).replace('.', ',')}
@@ -297,6 +313,12 @@ export default function StoreAdmin() {
                 <div>
                   <label className="block text-xs font-bold text-krav-text mb-1.5 uppercase tracking-wider">Preço (R$)</label>
                   <input type="number" step="0.01" min="0" value={formData.price} onChange={e => setFormData({...formData, price: parseFloat(e.target.value) || 0})} className="w-full bg-krav-card text-sm border border-krav-border focus:border-krav-accent p-2.5 rounded-lg transition-colors outline-none font-medium" required />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-krav-text mb-1.5 uppercase tracking-wider">Variações (Opcional)</label>
+                  <input type="text" placeholder="Ex: P, M, G, GG ou Branco, Preto" value={formData.variationsString} onChange={e => setFormData({...formData, variationsString: e.target.value})} className="w-full bg-krav-card text-sm border border-krav-border focus:border-krav-accent p-2.5 rounded-lg transition-colors outline-none" />
+                  <p className="text-[10px] text-krav-muted mt-1 uppercase tracking-wider">Separe as opções por vírgula</p>
                 </div>
 
                 <div>
