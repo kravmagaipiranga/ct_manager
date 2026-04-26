@@ -5,7 +5,7 @@ import { ShoppingBag, Box, Package, Check, Plus, Edit, Trash2, X, Save, Download
 import { ContactActions } from '../../components/shared/ContactActions';
 import { OrderStatus, Product } from '../../types';
 import { Pagination } from '../../components/shared/Pagination';
-import { exportToCSV } from '../../lib/csv';
+import { toast } from 'sonner';
 
 export default function StoreAdmin() {
   const user = useAuthStore((state) => state.user);
@@ -33,7 +33,7 @@ export default function StoreAdmin() {
   // Form State
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [formData, setFormData] = useState({ name: '', description: '', price: 0, stock: 0 });
+  const [formData, setFormData] = useState({ name: '', description: '', price: 0, stock: 0, imageUrl: '' });
 
   // Pagination State
   const [ordersPage, setOrdersPage] = useState(1);
@@ -83,13 +83,14 @@ export default function StoreAdmin() {
        setEditingId(product.id);
        setFormData({
          name: product.name,
-         description: product.description,
+         description: product.description || '',
          price: product.price,
-         stock: product.stock
+         stock: product.stock || 0,
+         imageUrl: product.imageUrl || ''
        });
     } else {
        setEditingId(null);
-       setFormData({ name: '', description: '', price: 0, stock: 0 });
+       setFormData({ name: '', description: '', price: 0, stock: 0, imageUrl: '' });
     }
     setIsFormOpen(true);
   };
@@ -98,13 +99,20 @@ export default function StoreAdmin() {
     e.preventDefault();
     if (editingId) {
       updateProduct(editingId, formData);
+      toast.success('Produto atualizado com sucesso!');
     } else {
       addProduct({
          id: Math.random().toString(36).substr(2, 9),
          ...formData
       });
+      toast.success('Produto cadastrado com sucesso!');
     }
     setIsFormOpen(false);
+  };
+
+  const handleUpdateOrderStatus = (id: string, newStatus: OrderStatus) => {
+    updateOrderStatus(id, newStatus);
+    toast.success('Status do pedido atualizado!');
   };
 
   return (
@@ -197,17 +205,17 @@ export default function StoreAdmin() {
                           </td>
                           <td className="py-4 px-6 flex items-center">
                             {order.status === 'PENDING' && (
-                              <button onClick={() => updateOrderStatus(order.id, 'PROCESSING')} className="bg-krav-warning/10 text-krav-warning hover:bg-krav-warning hover:text-white border border-krav-warning/20 px-3 py-1.5 rounded text-xs font-bold transition-colors inline-flex items-center gap-1.5">
+                              <button onClick={() => handleUpdateOrderStatus(order.id, 'PROCESSING')} className="bg-krav-warning/10 text-krav-warning hover:bg-krav-warning hover:text-white border border-krav-warning/20 px-3 py-1.5 rounded text-xs font-bold transition-colors inline-flex items-center gap-1.5">
                                 <Package className="w-3.5 h-3.5" /> Preparar Pedido
                               </button>
                             )}
                             {order.status === 'PROCESSING' && (
-                              <button onClick={() => updateOrderStatus(order.id, 'READY')} className="bg-krav-accent/10 text-krav-accent hover:bg-krav-accent hover:text-white border border-krav-accent/20 px-3 py-1.5 rounded text-xs font-bold transition-colors inline-flex items-center gap-1.5">
+                              <button onClick={() => handleUpdateOrderStatus(order.id, 'READY')} className="bg-krav-accent/10 text-krav-accent hover:bg-krav-accent hover:text-white border border-krav-accent/20 px-3 py-1.5 rounded text-xs font-bold transition-colors inline-flex items-center gap-1.5">
                                 <Check className="w-3.5 h-3.5" /> Marcar como Pronto
                               </button>
                             )}
                             {order.status === 'READY' && (
-                              <button onClick={() => updateOrderStatus(order.id, 'DELIVERED')} className="bg-krav-success border border-krav-success text-white hover:bg-krav-success/90 px-3 py-1.5 rounded text-xs font-bold transition-colors inline-flex items-center gap-1.5 shadow-sm">
+                              <button onClick={() => handleUpdateOrderStatus(order.id, 'DELIVERED')} className="bg-krav-success border border-krav-success text-white hover:bg-krav-success/90 px-3 py-1.5 rounded text-xs font-bold transition-colors inline-flex items-center gap-1.5 shadow-sm">
                                 <Check className="w-3.5 h-3.5 block" /> Entregar
                               </button>
                             )}
@@ -235,16 +243,16 @@ export default function StoreAdmin() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {paginatedProducts.map(p => (
                     <div key={p.id} onClick={() => handleOpenForm(p)} className="cursor-pointer border border-krav-border rounded-lg p-4 bg-krav-card hover:border-krav-accent hover:shadow-md transition-all flex flex-col group relative overflow-hidden">
-                      <div className="w-full h-32 bg-krav-bg rounded mb-4 flex items-center justify-center">
-                        <ShoppingBag className="w-8 h-8 text-krav-border" />
+                      <div className="w-full h-32 bg-krav-bg rounded mb-4 flex items-center justify-center overflow-hidden">
+                        {p.imageUrl ? (
+                           <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />
+                        ) : (
+                           <ShoppingBag className="w-8 h-8 text-krav-border" />
+                        )}
                       </div>
-                      <h3 className="font-semibold text-krav-text text-sm truncate group-hover:text-krav-accent transition-colors pr-8">{p.name}</h3>
-                      <p className="text-xs text-krav-muted mt-1 flex-1 line-clamp-2">{p.description}</p>
-                      <div className="flex justify-between items-center mt-4 pt-4 border-t border-krav-border">
+                      <h3 className="font-semibold text-krav-text text-sm truncate group-hover:text-krav-accent transition-colors pr-8 mb-2 flex-1">{p.name}</h3>
+                      <div className="flex justify-between items-center mt-auto pt-4 border-t border-krav-border">
                         <span className="font-bold text-krav-accent">R$ {p.price.toFixed(2).replace('.', ',')}</span>
-                        <span className="text-[10px] text-krav-muted font-semibold uppercase tracking-wider bg-krav-bg px-2 py-1 rounded border border-krav-border">
-                          Est: {p.stock}
-                        </span>
                       </div>
                       
                       {/* Hover actions */}
@@ -280,27 +288,28 @@ export default function StoreAdmin() {
                  <X className="w-5 h-5" />
                </button>
              </div>
-             
-             <form onSubmit={handleSaveProduct} className="p-5 flex-1 overflow-y-auto flex flex-col gap-5 bg-krav-bg">
+                       <form onSubmit={handleSaveProduct} className="p-5 flex-1 overflow-y-auto flex flex-col gap-5 bg-krav-bg">
                 <div>
                   <label className="block text-xs font-bold text-krav-text mb-1.5 uppercase tracking-wider">Nome do Produto</label>
                   <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-krav-card text-sm border border-krav-border focus:border-krav-accent p-2.5 rounded-lg transition-colors outline-none" required />
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-krav-text mb-1.5 uppercase tracking-wider">Preço (R$)</label>
-                    <input type="number" step="0.01" min="0" value={formData.price} onChange={e => setFormData({...formData, price: parseFloat(e.target.value) || 0})} className="w-full bg-krav-card text-sm border border-krav-border focus:border-krav-accent p-2.5 rounded-lg transition-colors outline-none font-medium" required />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-krav-text mb-1.5 uppercase tracking-wider">Estoque Base</label>
-                    <input type="number" min="0" value={formData.stock} onChange={e => setFormData({...formData, stock: parseInt(e.target.value) || 0})} className="w-full bg-krav-card text-sm border border-krav-border focus:border-krav-accent p-2.5 rounded-lg transition-colors outline-none font-medium" required />
-                  </div>
+                <div>
+                  <label className="block text-xs font-bold text-krav-text mb-1.5 uppercase tracking-wider">Preço (R$)</label>
+                  <input type="number" step="0.01" min="0" value={formData.price} onChange={e => setFormData({...formData, price: parseFloat(e.target.value) || 0})} className="w-full bg-krav-card text-sm border border-krav-border focus:border-krav-accent p-2.5 rounded-lg transition-colors outline-none font-medium" required />
                 </div>
 
                 <div>
-                   <label className="block text-xs font-bold text-krav-text mb-1.5 uppercase tracking-wider">Descrição</label>
-                   <textarea rows={4} value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full bg-krav-card text-sm border border-krav-border focus:border-krav-accent p-2.5 rounded-lg transition-colors outline-none resize-none" required />
+                   <label className="block text-xs font-bold text-krav-text mb-1.5 uppercase tracking-wider">Imagem do Produto</label>
+                   <div className="flex gap-2 items-center">
+                     <input type="url" placeholder="https://..." value={formData.imageUrl} onChange={e => setFormData({...formData, imageUrl: e.target.value})} className="flex-1 bg-krav-card text-sm border border-krav-border focus:border-krav-accent p-2.5 rounded-lg transition-colors outline-none" />
+                     <button type="button" onClick={() => {
+                        const url = prompt('Cole a URL da imagem:');
+                        if(url) setFormData({...formData, imageUrl: url});
+                     }} className="bg-krav-card border border-krav-border text-krav-text px-4 py-2.5 rounded-lg hover:bg-black/5 transition-colors text-sm font-semibold shadow-sm">
+                       Upload
+                     </button>
+                   </div>
                 </div>
 
                 <div className="mt-auto pt-6 pb-20 xl:pb-0">

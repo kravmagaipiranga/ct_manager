@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
+import { Toaster } from 'sonner';
 import { useAuthStore } from './store/useAuthStore';
 import StudentLogin from './pages/auth/StudentLogin';
 import AdminLogin from './pages/auth/AdminLogin';
@@ -35,7 +36,9 @@ export default function App() {
   const user = useAuthStore((state) => state.user);
 
   return (
-    <Routes>
+    <>
+      <Toaster position="top-right" richColors />
+      <Routes>
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<StudentLogin />} />
       <Route path="/login/:academyId" element={<StudentLogin />} />
@@ -83,7 +86,8 @@ export default function App() {
 
       {/* Catch-all */}
       <Route path="*" element={<Navigate to="/login" replace />} />
-    </Routes>
+      </Routes>
+    </>
   );
 }
 
