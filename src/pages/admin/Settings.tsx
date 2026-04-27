@@ -327,7 +327,7 @@ export default function Settings() {
                </div>
                
                <div className="flex flex-col gap-3">
-                 <p className="text-sm text-krav-muted font-medium">Para restaurar dados, carregue um arquivo .json exportado anteriormente. <strong className="text-krav-danger">Isto substituirá TODOS os dados atuais!</strong></p>
+                 <p className="text-sm text-krav-muted font-medium">Para restaurar dados completos do sistema, carregue o arquivo .json gerado. <strong className="text-krav-danger">Isto substituirá TODOS os dados atuais!</strong></p>
                  <div>
                    <input 
                      type="file" 
@@ -341,9 +341,75 @@ export default function Settings() {
                      htmlFor="backup-upload" 
                      className="w-full sm:w-auto bg-krav-card border border-krav-border hover:bg-black/5 text-krav-text cursor-pointer px-6 py-2.5 rounded-lg text-sm font-bold shadow-sm transition-colors flex items-center justify-center gap-2"
                    >
-                     <UploadCloud className="w-4 h-4 text-krav-accent" /> Carregar Importação
+                     <UploadCloud className="w-4 h-4 text-krav-accent" /> Carregar Completo
                    </label>
                  </div>
+               </div>
+               
+               <div className="md:col-span-2 pt-6 mt-2 border-t border-krav-border">
+                  <h3 className="text-sm font-bold text-krav-text flex items-center gap-2 mb-2">
+                     <AlertTriangle className="w-4 h-4 text-orange-500" /> Ferramenta de Migração (Vercel)
+                  </h3>
+                  <p className="text-[11px] text-krav-muted mb-4">
+                     Esta ferramenta permite que você importe a lista de alunos (nome e email) diretamente da sua outra plataforma. A senha padrão <strong>kravmaga123</strong> será definida, e o aluno irá atualizá-la no primeiro acesso. O Firestore irá sincronizar tudo automaticamente assim que forem salvos.
+                  </p>
+                  <div>
+                    <input 
+                      type="file" 
+                      accept=".json,.csv"
+                      id="vercel-upload"
+                      className="hidden"
+                      onChange={(e) => {
+                         const file = e.target.files?.[0];
+                         if (!file) return;
+                         const reader = new FileReader();
+                         reader.onload = (event) => {
+                            try {
+                               // Simulação de parser Vercel -> JSON. Exige JSON em formato array [{nome, email, telefone}]
+                               const data = JSON.parse(event.target?.result as string);
+                               if(!Array.isArray(data)) throw new Error("A lista precisa ser um array JSON.");
+                               
+                               const importStudents = useDataStore.getState().students.slice();
+                               let added = 0;
+                               
+                               data.forEach(aluno => {
+                                  if(aluno.email) {
+                                     // Prevent duplicates
+                                     if(!importStudents.find(s => s.email.toLowerCase() === aluno.email.toLowerCase())) {
+                                        const newStudent = {
+                                           id: Math.random().toString(36).substr(2, 9),
+                                           academyId: settings.id,
+                                           role: 'STUDENT',
+                                           name: aluno.name || aluno.nome || "Novo Aluno",
+                                           email: aluno.email.trim(),
+                                           phone: aluno.phone || aluno.telefone || "",
+                                           password: "kravmaga123",  // Senha padrão
+                                           mustChangePassword: true, // Flag para redefinição
+                                           beltLevel: "WHITE",
+                                           enrollmentStatus: "ACTIVE",
+                                           financialStatus: "ACTIVE",
+                                           createdAt: new Date().toISOString()
+                                        };
+                                        useDataStore.getState().addStudent(newStudent as any);
+                                        added++;
+                                     }
+                                  }
+                               });
+                               setBackupMsg(added + " Alunos importados com sucesso! Sincronizando BD...");
+                            } catch (error) {
+                               setBackupMsg("Erro ao ler dados. Garanta que salvou os alunos em Formato JSON Correto.");
+                            }
+                         };
+                         reader.readAsText(file);
+                      }}
+                    />
+                    <label 
+                      htmlFor="vercel-upload" 
+                      className="w-full sm:w-auto bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100 cursor-pointer px-6 py-2.5 rounded-lg text-sm font-bold shadow-sm transition-colors flex items-center justify-center gap-2"
+                    >
+                      <UploadCloud className="w-4 h-4" /> Importar Json de Alunos (Planilha Vercel)
+                    </label>
+                  </div>
                </div>
             </div>
           </div>

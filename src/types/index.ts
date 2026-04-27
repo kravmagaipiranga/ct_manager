@@ -46,6 +46,7 @@ export interface User {
   name: string;
   email: string;
   password?: string;
+  mustChangePassword?: boolean;
   phone?: string;
   beltLevel?: Belt;
   enrollmentStatus?: Status;

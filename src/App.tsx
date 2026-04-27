@@ -3,6 +3,8 @@ import { Toaster } from 'sonner';
 import { useAuthStore } from './store/useAuthStore';
 import { useEffect } from 'react';
 import { loadFromFirebase } from './store/syncFirebase';
+import { auth } from './lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import StudentLogin from './pages/auth/StudentLogin';
 import AdminLogin from './pages/auth/AdminLogin';
 import Register from './pages/auth/Register';
@@ -38,7 +40,12 @@ export default function App() {
   const user = useAuthStore((state) => state.user);
 
   useEffect(() => {
-    loadFromFirebase();
+    const unsub = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        loadFromFirebase();
+      }
+    });
+    return () => unsub();
   }, []);
 
   return (

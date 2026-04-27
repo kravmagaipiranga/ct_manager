@@ -3,6 +3,8 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { useDataStore } from '../../store/useDataStore';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, AlertCircle, Shield } from 'lucide-react';
+import { auth } from '../../lib/firebase';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 
 export default function AdminLogin() {
   const login = useAuthStore((state) => state.login);
@@ -14,23 +16,48 @@ export default function AdminLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
-    // Busca tanto em alunos quanto em equipe (neste mock tudo está em MOCK_STUDENTS no store)
-    const foundUser = students.find(s => 
-      s.email.toLowerCase() === email.toLowerCase() && 
-      s.password === password
-    );
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      // Wait for data to load from Firebase since we are now authenticated
+      const { loadFromFirebase } = await import('../../store/syncFirebase');
+      await loadFromFirebase();
 
-    if (foundUser && (foundUser.role === 'ADMIN' || foundUser.role === 'INSTRUCTOR')) {
-      login(foundUser);
-      navigate('/admin/dashboard');
-    } else {
-      setError('Acesso negado. Verifique email e senha para equipe.');
+      const updatedStudents = useDataStore.getState().students;
+      const dbUser = updatedStudents.find(s => s.email.toLowerCase() === email.toLowerCase());
+
+      if (dbUser && (dbUser.role === 'ADMIN' || dbUser.role === 'INSTRUCTOR')) {
+         login(dbUser);
+         navigate('/admin/dashboard');
+      } else {
+         setError('Conta autenticada, mas sem permissões de equipe.');
+      }
+    } catch (err: any) {
+      // Fallback para migração local se no Firebase não existir
+      if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential' || err.message.includes('auth/invalid-login-credentials')) {
+         const localUser = students.find(s => s.email.toLowerCase() === email.toLowerCase() && (s.password === password || (!s.password && password === '123456')));
+         if (localUser && (localUser.role === 'ADMIN' || localUser.role === 'INSTRUCTOR')) {
+            try {
+               await createUserWithEmailAndPassword(auth, email, password);
+               login(localUser);
+               navigate('/admin/dashboard');
+            } catch (err2: any) {
+               setError('Usuário local encontrado, mas erro ao registrar no servidor cloud.');
+            }
+         } else {
+            setError('Credenciais inválidas.');
+         }
+      } else {
+         setError('Erro de comunicação com o servidor.');
+      }
     }
+    setLoading(false);
   };
 
   return (

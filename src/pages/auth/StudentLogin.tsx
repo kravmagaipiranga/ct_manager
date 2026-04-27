@@ -3,6 +3,8 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { useDataStore } from '../../store/useDataStore';
 import { useNavigate, Link, useParams } from 'react-router-dom';
 import { Mail, Lock, AlertCircle } from 'lucide-react';
+import { auth } from '../../lib/firebase';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 
 export default function StudentLogin() {
   const { academyId } = useParams();
@@ -16,24 +18,48 @@ export default function StudentLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const regLink = academyId ? `/matricula/${academyId}` : '/matricula';
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
-    const foundUser = students.find(s => 
-      s.email.toLowerCase() === email.toLowerCase() && 
-      (s.password === password || (!s.password && password === '123456')) // Fallback para mocks sem senha
-    );
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      const { loadFromFirebase } = await import('../../store/syncFirebase');
+      await loadFromFirebase();
 
-    if (foundUser && foundUser.role === 'STUDENT') {
-      login(foundUser);
-      navigate('/student/home');
-    } else {
-      setError('Credenciais inválidas ou aluno não encontrado.');
+      const updatedStudents = useDataStore.getState().students;
+      const dbUser = updatedStudents.find(s => s.email.toLowerCase() === email.toLowerCase());
+
+      if (dbUser && dbUser.role === 'STUDENT') {
+         login(dbUser);
+         navigate('/student/home');
+      } else {
+         setError('Conta autenticada, mas sem permissões de aluno.');
+      }
+    } catch (err: any) {
+      if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential' || err.message.includes('auth/invalid-login-credentials')) {
+         const localUser = students.find(s => s.email.toLowerCase() === email.toLowerCase() && (s.password === password || (!s.password && password === '123456')));
+         if (localUser && localUser.role === 'STUDENT') {
+            try {
+               await createUserWithEmailAndPassword(auth, email, password);
+               login(localUser);
+               navigate('/student/home');
+            } catch (err2: any) {
+               setError('Verifique seu e-mail e senha. Erro ao autenticar no servidor seguro.');
+            }
+         } else {
+            setError('Credenciais inválidas ou aluno não encontrado.');
+         }
+      } else {
+         setError('Erro ao se comunicar com o servidor.');
+      }
     }
+    setLoading(false);
   };
 
   return (

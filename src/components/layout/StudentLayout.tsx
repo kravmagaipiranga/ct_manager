@@ -1,7 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
+import { useDataStore } from '../../store/useDataStore';
 import { cn } from '../../lib/utils';
+import { auth } from '../../lib/firebase';
+import { updatePassword } from 'firebase/auth';
 import {
   Home,
   Calendar,
@@ -15,7 +18,8 @@ import {
   Moon,
   Sun,
   X,
-  MapPin
+  MapPin,
+  Lock
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -28,8 +32,67 @@ const NAV_ITEMS = [
   { label: 'Perfil', path: '/student/profile', icon: UserIcon },
 ];
 
+function ForcePasswordChange({ onComplete }: { onComplete: () => void }) {
+  const user = useAuthStore(state => state.user);
+  const updateStudent = useDataStore(state => state.updateStudent);
+  const [pass, setPass] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [err, setErr] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if(pass !== confirm) return setErr("As senhas não coincidem.");
+    if(pass.length < 6) return setErr("A senha deve ter pelo menos 6 caracteres.");
+    
+    setLoading(true);
+    setErr('');
+    try {
+       if(auth.currentUser) {
+          await updatePassword(auth.currentUser, pass);
+       }
+       if(user) {
+          updateStudent(user.id, { password: pass, mustChangePassword: false });
+          useAuthStore.getState().login({ ...user, password: pass, mustChangePassword: false });
+       }
+       onComplete();
+    } catch(error) {
+       setErr("Erro ao atualizar senha. Tente fazer login novamente.");
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/80 z-[100] flex flex-col items-center justify-center p-6 backdrop-blur-sm">
+       <div className="bg-krav-card p-8 rounded-2xl w-full max-w-md shadow-2xl border border-krav-border">
+          <div className="w-12 h-12 bg-krav-accent/20 rounded-full flex items-center justify-center mb-4 mx-auto text-krav-accent">
+            <Lock className="w-6 h-6" />
+          </div>
+          <h2 className="text-xl font-bold text-center mb-2">Bem-vindo(a) ao Portal!</h2>
+          <p className="text-sm text-krav-muted text-center mb-6">Como este é seu primeiro acesso com uma conta migrada, precisamos que você defina uma nova senha de segurança.</p>
+          
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+             <div>
+                <label className="text-xs font-bold uppercase tracking-wider text-krav-muted">Nova Senha</label>
+                <input type="password" required value={pass} onChange={e=>setPass(e.target.value)} className="w-full mt-1 px-4 py-2 bg-krav-bg border border-krav-border rounded-lg text-krav-text" placeholder="Mínimo 6 caracteres" />
+             </div>
+             <div>
+                <label className="text-xs font-bold uppercase tracking-wider text-krav-muted">Confirme a Nova Senha</label>
+                <input type="password" required value={confirm} onChange={e=>setConfirm(e.target.value)} className="w-full mt-1 px-4 py-2 bg-krav-bg border border-krav-border rounded-lg text-krav-text" />
+             </div>
+             {err && <p className="text-xs text-red-500 font-bold bg-red-500/10 p-2 rounded">{err}</p>}
+             <button disabled={loading} type="submit" className="w-full py-3 bg-krav-accent hover:bg-krav-accent-light text-white font-bold rounded-lg transition-colors shadow-md mt-2 disabled:opacity-50">
+               {loading ? "Salvando..." : "Atualizar Senha e Continuar"}
+             </button>
+          </form>
+       </div>
+    </div>
+  );
+}
+
 export default function StudentLayout() {
   const user = useAuthStore((state) => state.user);
+  const login = useAuthStore((state) => state.login);
   const logout = useAuthStore((state) => state.logout);
   const navigate = useNavigate();
   
@@ -82,6 +145,10 @@ export default function StudentLayout() {
   return (
     <main className="flex flex-col min-h-screen w-full bg-krav-bg text-krav-text font-sans relative md:h-screen transition-colors">
       
+      {user?.mustChangePassword && (
+         <ForcePasswordChange onComplete={() => {}} />
+      )}
+
       {/* Top Header - Mobile friendly */}
       <header className="h-16 px-4 md:px-6 border-b border-krav-border flex items-center justify-between bg-krav-sidebar z-30 sticky top-0 transition-colors shadow-sm">
         <div className="flex items-center gap-3 md:hidden">
