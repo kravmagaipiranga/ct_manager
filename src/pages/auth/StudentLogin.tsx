@@ -19,16 +19,34 @@ export default function StudentLogin() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
 
   const regLink = academyId ? `/matricula/${academyId}` : '/matricula';
+
+  const handleResetPassword = async () => {
+     if (!email) {
+        setError('Digite seu e-mail acima para redefinir a senha.');
+        return;
+     }
+     try {
+       const { sendPasswordResetEmail } = await import('firebase/auth');
+       await sendPasswordResetEmail(auth, email);
+       setResetSent(true);
+       setError('');
+     } catch (err: any) {
+       setError('Erro ao enviar e-mail de redefinição: ' + err.message);
+     }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
+    const safePassword = password.length < 6 ? password.padEnd(6, '0') : password;
+
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      await signInWithEmailAndPassword(auth, email, safePassword);
       const { loadFromFirebase } = await import('../../store/syncFirebase');
       await loadFromFirebase();
 
@@ -36,7 +54,7 @@ export default function StudentLogin() {
       const dbUser = updatedStudents.find(s => s.email.toLowerCase() === email.toLowerCase());
 
       if (dbUser && dbUser.role === 'STUDENT') {
-         login(dbUser);
+         login({ ...dbUser, mustChangePassword: password.length < 6 ? true : dbUser.mustChangePassword });
          navigate('/student/home');
       } else {
          setError('Conta autenticada, mas sem permissões de aluno.');
@@ -46,16 +64,16 @@ export default function StudentLogin() {
          const localUser = students.find(s => s.email.toLowerCase() === email.toLowerCase() && (s.password === password || (!s.password && password === '123456')));
          if (localUser && localUser.role === 'STUDENT') {
             try {
-               await createUserWithEmailAndPassword(auth, email, password);
+               await createUserWithEmailAndPassword(auth, email, safePassword);
                const { loadFromFirebase } = await import('../../store/syncFirebase');
                await loadFromFirebase();
-               login(localUser);
+               login({ ...localUser, mustChangePassword: true });
                navigate('/student/home');
             } catch (err2: any) {
                if (err2.code === 'auth/email-already-in-use') {
                   setError('Esta conta já foi migrada para a nuvem. Digite a senha correta atualizada.');
                } else {
-                  setError('Verifique seu e-mail e senha. Erro ao autenticar no servidor seguro.');
+                  setError('Verifique seu e-mail e senha. Erro ao autenticar no servidor seguro: ' + err2.message);
                }
             }
          } else {
@@ -136,6 +154,16 @@ export default function StudentLogin() {
             ENTRAR NO PORTAL
           </button>
         </form>
+
+        <div className="mt-4 text-center">
+          {resetSent ? (
+             <p className="text-sm text-green-500 font-bold">✓ E-mail de redefinição enviado!</p>
+          ) : (
+             <button type="button" onClick={handleResetPassword} className="text-sm text-krav-muted hover:text-krav-text transition-colors">
+                Esqueceu a senha?
+             </button>
+          )}
+        </div>
 
         <div className="mt-8 pt-6 border-t border-krav-border text-center flex flex-col gap-3">
              <Link to={regLink} className="text-sm font-bold text-krav-accent hover:underline">

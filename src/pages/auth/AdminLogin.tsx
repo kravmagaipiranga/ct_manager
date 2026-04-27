@@ -17,14 +17,32 @@ export default function AdminLogin() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
+
+  const handleResetPassword = async () => {
+     if (!email) {
+        setError('Digite seu e-mail acima para redefinir a senha.');
+        return;
+     }
+     try {
+       const { sendPasswordResetEmail } = await import('firebase/auth');
+       await sendPasswordResetEmail(auth, email);
+       setResetSent(true);
+       setError('');
+     } catch (err: any) {
+       setError('Erro ao enviar e-mail de redefinição: ' + err.message);
+     }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
+    const safePassword = password.length < 6 ? password.padEnd(6, '0') : password;
+
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      await signInWithEmailAndPassword(auth, email, safePassword);
       // Wait for data to load from Firebase since we are now authenticated
       const { loadFromFirebase } = await import('../../store/syncFirebase');
       await loadFromFirebase();
@@ -33,7 +51,7 @@ export default function AdminLogin() {
       const dbUser = updatedStudents.find(s => s.email.toLowerCase() === email.toLowerCase());
 
       if (dbUser && (dbUser.role === 'ADMIN' || dbUser.role === 'INSTRUCTOR')) {
-         login(dbUser);
+         login({ ...dbUser, mustChangePassword: password.length < 6 ? true : dbUser.mustChangePassword });
          navigate('/admin/dashboard');
       } else {
          setError('Conta autenticada, mas sem permissões de equipe.');
@@ -44,16 +62,16 @@ export default function AdminLogin() {
          const localUser = students.find(s => s.email.toLowerCase() === email.toLowerCase() && (s.password === password || (!s.password && password === '123456')));
          if (localUser && (localUser.role === 'ADMIN' || localUser.role === 'INSTRUCTOR')) {
             try {
-               await createUserWithEmailAndPassword(auth, email, password);
+               await createUserWithEmailAndPassword(auth, email, safePassword);
                const { loadFromFirebase } = await import('../../store/syncFirebase');
                await loadFromFirebase();
-               login(localUser);
+               login({ ...localUser, mustChangePassword: true });
                navigate('/admin/dashboard');
             } catch (err2: any) {
                if (err2.code === 'auth/email-already-in-use') {
                   setError('Esta conta já foi migrada para a nuvem. Digite a senha correta (ou a nova senha criada).');
                } else {
-                  setError('Usuário local encontrado, mas erro ao registrar no servidor cloud.');
+                  setError('Usuário local encontrado, mas erro ao registrar no servidor cloud: ' + err2.message);
                }
             }
          } else {
@@ -134,6 +152,16 @@ export default function AdminLogin() {
             AUTENTICAR
           </button>
         </form>
+
+        <div className="mt-4 text-center">
+          {resetSent ? (
+             <p className="text-sm text-green-500 font-bold">✓ E-mail de redefinição enviado!</p>
+          ) : (
+             <button type="button" onClick={handleResetPassword} className="text-sm text-zinc-500 hover:text-white transition-colors">
+                Esqueceu a senha?
+             </button>
+          )}
+        </div>
 
         <div className="mt-8 pt-6 border-t border-zinc-800 text-center">
              <Link to="/login" className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
