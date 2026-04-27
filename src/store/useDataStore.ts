@@ -80,6 +80,17 @@ const appendToFirestore = async (collectionName: string, item: any) => {
   }
 };
 
+// Helper to delete from Firestore safely
+const removeFromFirestore = async (collectionName: string, id: string) => {
+  try {
+    const { doc, deleteDoc } = await import('firebase/firestore');
+    const { db } = await import('../lib/firebase');
+    await deleteDoc(doc(db, collectionName, id));
+  } catch (e) {
+    console.error("Firebase delete error:", e);
+  }
+};
+
 // ... keeping existing mocks untouched
 const MOCK_STUDENTS: User[] = [
   ...[
@@ -176,9 +187,10 @@ export const useDataStore = create<DataState>((set, get) => ({
     if(updated) appendToFirestore('users', { ...updated, ...updates });
     return { students: state.students.map(s => s.id === id ? { ...s, ...updates } : s) };
   }),
-  deleteStudent: (id) => set((state) => ({
-    students: state.students.filter(s => s.id !== id)
-  })),
+  deleteStudent: (id) => set((state) => {
+    removeFromFirestore('users', id);
+    return { students: state.students.filter(s => s.id !== id) };
+  }),
   addClass: (newClass) => set((state) => {
     appendToFirestore('classes', newClass);
     return { classes: [...state.classes, newClass] };
@@ -188,9 +200,10 @@ export const useDataStore = create<DataState>((set, get) => ({
     if(updated) appendToFirestore('classes', { ...updated, ...updates });
     return { classes: state.classes.map(c => c.id === id ? { ...c, ...updates } : c) };
   }),
-  deleteClass: (id) => set((state) => ({
-    classes: state.classes.filter(c => c.id !== id)
-  })),
+  deleteClass: (id) => set((state) => {
+    removeFromFirestore('classes', id);
+    return { classes: state.classes.filter(c => c.id !== id) };
+  }),
   updateEvent: (id, updates) => set((state) => {
     const updated = state.events.find(e => e.id === id);
     if(updated) appendToFirestore('events', { ...updated, ...updates });
@@ -201,12 +214,14 @@ export const useDataStore = create<DataState>((set, get) => ({
     if(updated) appendToFirestore('appointments', { ...updated, ...updates });
     return { appointments: state.appointments.map(a => a.id === id ? { ...a, ...updates } : a) };
   }),
-  deleteEvent: (id) => set((state) => ({
-    events: state.events.filter(e => e.id !== id)
-  })),
-  deleteAppointment: (id) => set((state) => ({
-    appointments: state.appointments.filter(a => a.id !== id)
-  })),
+  deleteEvent: (id) => set((state) => {
+    removeFromFirestore('events', id);
+    return { events: state.events.filter(e => e.id !== id) };
+  }),
+  deleteAppointment: (id) => set((state) => {
+    removeFromFirestore('appointments', id);
+    return { appointments: state.appointments.filter(a => a.id !== id) };
+  }),
 
   requestCheckin: (studentId, classId) => set((state) => {
     const chk = {
@@ -242,9 +257,10 @@ export const useDataStore = create<DataState>((set, get) => ({
     return { products: state.products.map(p => p.id === id ? { ...p, ...updates } : p) };
   }),
 
-  deleteProduct: (id) => set((state) => ({
-    products: state.products.filter(p => p.id !== id)
-  })),
+  deleteProduct: (id) => set((state) => {
+    removeFromFirestore('products', id);
+    return { products: state.products.filter(p => p.id !== id) };
+  }),
 
   placeOrder: (studentId, reqItems) => set((state) => {
     let total = 0;

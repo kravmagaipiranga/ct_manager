@@ -45,10 +45,16 @@ export default function AdminLogin() {
          if (localUser && (localUser.role === 'ADMIN' || localUser.role === 'INSTRUCTOR')) {
             try {
                await createUserWithEmailAndPassword(auth, email, password);
+               const { loadFromFirebase } = await import('../../store/syncFirebase');
+               await loadFromFirebase();
                login(localUser);
                navigate('/admin/dashboard');
             } catch (err2: any) {
-               setError('Usuário local encontrado, mas erro ao registrar no servidor cloud.');
+               if (err2.code === 'auth/email-already-in-use') {
+                  setError('Esta conta já foi migrada para a nuvem. Digite a senha correta (ou a nova senha criada).');
+               } else {
+                  setError('Usuário local encontrado, mas erro ao registrar no servidor cloud.');
+               }
             }
          } else {
             setError('Credenciais inválidas.');

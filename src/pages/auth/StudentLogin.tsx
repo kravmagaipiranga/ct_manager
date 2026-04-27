@@ -47,10 +47,16 @@ export default function StudentLogin() {
          if (localUser && localUser.role === 'STUDENT') {
             try {
                await createUserWithEmailAndPassword(auth, email, password);
+               const { loadFromFirebase } = await import('../../store/syncFirebase');
+               await loadFromFirebase();
                login(localUser);
                navigate('/student/home');
             } catch (err2: any) {
-               setError('Verifique seu e-mail e senha. Erro ao autenticar no servidor seguro.');
+               if (err2.code === 'auth/email-already-in-use') {
+                  setError('Esta conta já foi migrada para a nuvem. Digite a senha correta atualizada.');
+               } else {
+                  setError('Verifique seu e-mail e senha. Erro ao autenticar no servidor seguro.');
+               }
             }
          } else {
             setError('Credenciais inválidas ou aluno não encontrado.');

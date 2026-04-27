@@ -1,6 +1,7 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { useAuthStore } from './store/useAuthStore';
+import { useDataStore } from './store/useDataStore';
 import { useEffect } from 'react';
 import { loadFromFirebase } from './store/syncFirebase';
 import { auth } from './lib/firebase';
@@ -38,15 +39,34 @@ import Reports from './pages/instructor/Reports';
 export default function App() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const user = useAuthStore((state) => state.user);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        loadFromFirebase();
+        await loadFromFirebase();
+        // Force sync Zustand store after loading
+        const updatedStudents = useDataStore.getState().students;
+        const userInDb = updatedStudents.find(s => s.email.toLowerCase() === firebaseUser.email?.toLowerCase());
+        
+        if (userInDb && !useAuthStore.getState().isAuthenticated) {
+            useAuthStore.getState().login(userInDb);
+        }
       }
     });
     return () => unsub();
   }, []);
+
+  // Automatic routing if already authenticated but sitting on login pages
+  useEffect(() => {
+     if(isAuthenticated && user) {
+        const path = window.location.pathname;
+        if(path === '/login' || path === '/admin/login' || path === '/') {
+           if(user.role === 'ADMIN' || user.role === 'INSTRUCTOR') navigate('/admin/dashboard', { replace: true });
+           else navigate('/student/home', { replace: true });
+        }
+     }
+  }, [isAuthenticated, user, navigate]);
 
   return (
     <>

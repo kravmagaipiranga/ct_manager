@@ -39,8 +39,13 @@ export const syncToFirebase = async () => {
 export const loadFromFirebase = async () => {
     try {
         const loadCol = async (colName: string) => {
-            const snap = await getDocs(collection(db, colName));
-            return snap.docs.map(d => d.data());
+            try {
+                const snap = await getDocs(collection(db, colName));
+                return snap.docs.map(d => d.data());
+            } catch(e) {
+                console.error(`Error loading collection ${colName} from Firebase`, e);
+                return [];
+            }
         };
 
         const students = await loadCol('users');
@@ -81,6 +86,6 @@ export const loadFromFirebase = async () => {
 
         console.log("Data successfully loaded from Firebase");
     } catch(e) {
-        console.error("Error loading from Firebase", e);
+        console.error("Critical error in loadFromFirebase", e);
     }
 };
