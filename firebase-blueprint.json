@@ -1,0 +1,194 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "System users (students, instructors, admins)",
+      "type": "object",
+      "properties": {
+        "academyId": { "type": "string" },
+        "role": { "type": "string", "enum": ["ADMIN", "INSTRUCTOR", "STUDENT"] },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "beltLevel": { "type": "string" },
+        "enrollmentStatus": { "type": "string" },
+        "financialStatus": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "instructorId": { "type": "string" }
+      },
+      "required": ["academyId", "role", "name", "email", "createdAt"]
+    },
+    "ClassSession": {
+      "title": "ClassSession",
+      "description": "Weekly class schedules",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "instructorId": { "type": "string" },
+        "instructorName": { "type": "string" },
+        "dayOfWeek": { "type": "number" },
+        "time": { "type": "string" },
+        "durationMinutes": { "type": "number" }
+      },
+      "required": ["name", "instructorId", "instructorName", "dayOfWeek", "time", "durationMinutes"]
+    },
+    "Checkin": {
+      "title": "Checkin",
+      "description": "Student check-ins to classes",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string" },
+        "classId": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "status": { "type": "string", "enum": ["PENDING", "APPROVED", "REJECTED"] }
+      },
+      "required": ["studentId", "classId", "timestamp", "status"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Store products",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "price": { "type": "number" },
+        "stock": { "type": "number" }
+      },
+      "required": ["name", "description", "price", "stock"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Store orders",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string" },
+        "status": { "type": "string" },
+        "total": { "type": "number" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["studentId", "status", "total", "createdAt"]
+    },
+    "FinancialRecord": {
+      "title": "FinancialRecord",
+      "description": "Financial records of students",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string" },
+        "referenceMonth": { "type": "string" },
+        "amount": { "type": "number" },
+        "dueDate": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["studentId", "referenceMonth", "amount", "dueDate", "status"]
+    },
+    "AcademyEvent": {
+      "title": "AcademyEvent",
+      "description": "Events and seminars",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "type": { "type": "string" },
+        "date": { "type": "string" },
+        "description": { "type": "string" },
+        "capacity": { "type": "number" }
+      },
+      "required": ["title", "type", "date", "description", "capacity"]
+    },
+    "Announcement": {
+      "title": "Announcement",
+      "description": "Global announcements",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "authorId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["title", "content", "authorId", "authorName", "createdAt"]
+    },
+    "Appointment": {
+      "title": "Appointment",
+      "description": "Private classes and appointments",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "type": { "type": "string" },
+        "date": { "type": "string" },
+        "durationMinutes": { "type": "number" },
+        "instructorId": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["title", "type", "date", "durationMinutes", "instructorId", "status"]
+    },
+    "ClassLog": {
+      "title": "ClassLog",
+      "description": "Logs for classes detailing curriculum techniques",
+      "type": "object",
+      "properties": {
+        "dateStr": { "type": "string" },
+        "classId": { "type": "string" },
+        "belt": { "type": "string" }
+      },
+      "required": ["dateStr", "classId", "belt"]
+    },
+    "Visit": {
+      "title": "Visit",
+      "description": "Records visits or trials",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string" },
+        "date": { "type": "string" },
+        "studentName": { "type": "string" },
+        "instructorId": { "type": "string" }
+      },
+      "required": ["type", "date", "studentName", "instructorId"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Users collection"
+    },
+    "/classes/{classId}": {
+      "schema": "ClassSession",
+      "description": "Classes collection"
+    },
+    "/checkins/{checkinId}": {
+      "schema": "Checkin",
+      "description": "Checkins collection"
+    },
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Products collection"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Orders collection"
+    },
+    "/financials/{recordId}": {
+      "schema": "FinancialRecord",
+      "description": "Financial records collection"
+    },
+    "/events/{eventId}": {
+      "schema": "AcademyEvent",
+      "description": "Events collection"
+    },
+    "/announcements/{announcementId}": {
+      "schema": "Announcement",
+      "description": "Announcements collection"
+    },
+    "/appointments/{appointmentId}": {
+      "schema": "Appointment",
+      "description": "Appointments collection"
+    },
+    "/classLogs/{logId}": {
+      "schema": "ClassLog",
+      "description": "Class Logs collection"
+    },
+    "/visits/{visitId}": {
+      "schema": "Visit",
+      "description": "Visits collection"
+    }
+  }
+}

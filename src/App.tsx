@@ -1,6 +1,8 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { useAuthStore } from './store/useAuthStore';
+import { useEffect } from 'react';
+import { loadFromFirebase } from './store/syncFirebase';
 import StudentLogin from './pages/auth/StudentLogin';
 import AdminLogin from './pages/auth/AdminLogin';
 import Register from './pages/auth/Register';
@@ -34,6 +36,10 @@ import Reports from './pages/instructor/Reports';
 export default function App() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const user = useAuthStore((state) => state.user);
+
+  useEffect(() => {
+    loadFromFirebase();
+  }, []);
 
   return (
     <>

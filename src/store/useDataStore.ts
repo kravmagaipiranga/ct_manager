@@ -67,6 +67,19 @@ export interface DataState {
   importBackup: (backupData: any) => void;
 }
 
+// Helper to save to Firestore safely
+const appendToFirestore = async (collectionName: string, item: any) => {
+  try {
+    const { doc, setDoc } = await import('firebase/firestore');
+    const { db } = await import('../lib/firebase');
+    if(item && item.id) {
+       await setDoc(doc(db, collectionName, String(item.id)), item, { merge: true });
+    }
+  } catch (e) {
+    console.error("Firebase sync error:", e);
+  }
+};
+
 // ... keeping existing mocks untouched
 const MOCK_STUDENTS: User[] = [
   ...[
@@ -155,29 +168,39 @@ export const useDataStore = create<DataState>((set, get) => ({
       id: Math.random().toString(36).substr(2, 9),
       createdAt: new Date().toISOString()
     } as User;
+    appendToFirestore('users', newStudent);
     return { students: [...state.students, newStudent] };
   }),
-  updateStudent: (id, updates) => set((state) => ({
-    students: state.students.map(s => s.id === id ? { ...s, ...updates } : s)
-  })),
+  updateStudent: (id, updates) => set((state) => {
+    const updated = state.students.find(s => s.id === id);
+    if(updated) appendToFirestore('users', { ...updated, ...updates });
+    return { students: state.students.map(s => s.id === id ? { ...s, ...updates } : s) };
+  }),
   deleteStudent: (id) => set((state) => ({
     students: state.students.filter(s => s.id !== id)
   })),
-  addClass: (newClass) => set((state) => ({
-    classes: [...state.classes, newClass]
-  })),
-  updateClass: (id, updates) => set((state) => ({
-    classes: state.classes.map(c => c.id === id ? { ...c, ...updates } : c)
-  })),
+  addClass: (newClass) => set((state) => {
+    appendToFirestore('classes', newClass);
+    return { classes: [...state.classes, newClass] };
+  }),
+  updateClass: (id, updates) => set((state) => {
+    const updated = state.classes.find(c => c.id === id);
+    if(updated) appendToFirestore('classes', { ...updated, ...updates });
+    return { classes: state.classes.map(c => c.id === id ? { ...c, ...updates } : c) };
+  }),
   deleteClass: (id) => set((state) => ({
     classes: state.classes.filter(c => c.id !== id)
   })),
-  updateEvent: (id, updates) => set((state) => ({
-    events: state.events.map(e => e.id === id ? { ...e, ...updates } : e)
-  })),
-  updateAppointment: (id, updates) => set((state) => ({
-    appointments: state.appointments.map(a => a.id === id ? { ...a, ...updates } : a)
-  })),
+  updateEvent: (id, updates) => set((state) => {
+    const updated = state.events.find(e => e.id === id);
+    if(updated) appendToFirestore('events', { ...updated, ...updates });
+    return { events: state.events.map(e => e.id === id ? { ...e, ...updates } : e) };
+  }),
+  updateAppointment: (id, updates) => set((state) => {
+    const updated = state.appointments.find(a => a.id === id);
+    if(updated) appendToFirestore('appointments', { ...updated, ...updates });
+    return { appointments: state.appointments.map(a => a.id === id ? { ...a, ...updates } : a) };
+  }),
   deleteEvent: (id) => set((state) => ({
     events: state.events.filter(e => e.id !== id)
   })),
@@ -185,29 +208,39 @@ export const useDataStore = create<DataState>((set, get) => ({
     appointments: state.appointments.filter(a => a.id !== id)
   })),
 
-  requestCheckin: (studentId, classId) => set((state) => ({
-    checkins: [...state.checkins, {
+  requestCheckin: (studentId, classId) => set((state) => {
+    const chk = {
       id: Math.random().toString(36).substr(2, 9),
       studentId,
       classId,
       timestamp: new Date().toISOString(),
-      status: 'PENDING'
-    }]
-  })),
-  approveCheckin: (checkinId) => set((state) => ({
-    checkins: state.checkins.map(chk => chk.id === checkinId ? { ...chk, status: 'APPROVED' } : chk)
-  })),
-  rejectCheckin: (checkinId) => set((state) => ({
-    checkins: state.checkins.map(chk => chk.id === checkinId ? { ...chk, status: 'REJECTED' } : chk)
-  })),
+      status: 'PENDING' as any
+    };
+    appendToFirestore('checkins', chk);
+    return { checkins: [...state.checkins, chk] };
+  }),
+  approveCheckin: (checkinId) => set((state) => {
+    const checkin = state.checkins.find(c => c.id === checkinId);
+    if(checkin) appendToFirestore('checkins', { ...checkin, status: 'APPROVED' });
+    return { checkins: state.checkins.map(chk => chk.id === checkinId ? { ...chk, status: 'APPROVED' } : chk) };
+  }),
+  rejectCheckin: (checkinId) => set((state) => {
+    const checkin = state.checkins.find(c => c.id === checkinId);
+    if(checkin) appendToFirestore('checkins', { ...checkin, status: 'REJECTED' });
+    return { checkins: state.checkins.map(chk => chk.id === checkinId ? { ...chk, status: 'REJECTED' } : chk) };
+  }),
 
-  addProduct: (product) => set((state) => ({
-    products: [{ ...product, id: Math.random().toString(36).substr(2, 9) }, ...state.products]
-  })),
+  addProduct: (product) => set((state) => {
+    const p = { ...product, id: Math.random().toString(36).substr(2, 9) };
+    appendToFirestore('products', p);
+    return { products: [p, ...state.products] };
+  }),
 
-  updateProduct: (id, updates) => set((state) => ({
-    products: state.products.map(p => p.id === id ? { ...p, ...updates } : p)
-  })),
+  updateProduct: (id, updates) => set((state) => {
+    const p = state.products.find(x => x.id === id);
+    if(p) appendToFirestore('products', { ...p, ...updates });
+    return { products: state.products.map(p => p.id === id ? { ...p, ...updates } : p) };
+  }),
 
   deleteProduct: (id) => set((state) => ({
     products: state.products.filter(p => p.id !== id)
@@ -222,54 +255,68 @@ export const useDataStore = create<DataState>((set, get) => ({
       return { productId: item.productId, quantity: item.quantity, unitPrice: price, variation: item.variation };
     });
 
+    const order = {
+      id: Math.random().toString(36).substr(2, 9),
+      studentId,
+      items,
+      total,
+      status: 'PENDING' as any,
+      createdAt: new Date().toISOString()
+    };
+    appendToFirestore('orders', order);
+
     return {
-      orders: [{
-        id: Math.random().toString(36).substr(2, 9),
-        studentId,
-        items,
-        total,
-        status: 'PENDING',
-        createdAt: new Date().toISOString()
-      }, ...state.orders]
+      orders: [order, ...state.orders]
     };
   }),
 
-  updateOrderStatus: (orderId, status) => set((state) => ({
-    orders: state.orders.map(o => o.id === orderId ? { ...o, status } : o)
-  })),
+  updateOrderStatus: (orderId, status) => set((state) => {
+    const o = state.orders.find(x => x.id === orderId);
+    if(o) appendToFirestore('orders', { ...o, status });
+    return { orders: state.orders.map(o => o.id === orderId ? { ...o, status } : o) };
+  }),
 
-  markFinancialPaid: (recordId) => set((state) => ({
-    financials: state.financials.map(f => f.id === recordId ? { ...f, status: 'PAID', paidAt: new Date().toISOString() } : f)
-  })),
+  markFinancialPaid: (recordId) => set((state) => {
+    const f = state.financials.find(x => x.id === recordId);
+    if(f) appendToFirestore('financials', { ...f, status: 'PAID', paidAt: new Date().toISOString() });
+    return { financials: state.financials.map(f => f.id === recordId ? { ...f, status: 'PAID', paidAt: new Date().toISOString() } : f) };
+  }),
 
-  registerForEvent: (eventId, studentId) => set((state) => ({
-    events: state.events.map(e => e.id === eventId ? { ...e, registeredCount: e.registeredCount + 1 } : e)
-  })),
+  registerForEvent: (eventId, studentId) => set((state) => {
+    const e = state.events.find(x => x.id === eventId);
+    if(e) appendToFirestore('events', { ...e, registeredCount: e.registeredCount + 1 });
+    return { events: state.events.map(e => e.id === eventId ? { ...e, registeredCount: e.registeredCount + 1 } : e) };
+  }),
 
-  addAnnouncement: (announcement) => set((state) => ({
-    announcements: [
-      { ...announcement, id: Math.random().toString(36).substr(2, 9), createdAt: new Date().toISOString() },
-      ...state.announcements
-    ]
-  })),
+  addAnnouncement: (announcement) => set((state) => {
+    const a = { ...announcement, id: Math.random().toString(36).substr(2, 9), createdAt: new Date().toISOString() };
+    appendToFirestore('announcements', a);
+    return {
+      announcements: [a, ...state.announcements]
+    };
+  }),
 
-  addEvent: (event) => set((state) => ({
-    events: [
-      { ...event, id: Math.random().toString(36).substr(2, 9), registeredCount: 0 },
-      ...state.events
-    ]
-  })),
+  addEvent: (event) => set((state) => {
+    const e = { ...event, id: Math.random().toString(36).substr(2, 9), registeredCount: 0 };
+    appendToFirestore('events', e);
+    return {
+      events: [e, ...state.events]
+    };
+  }),
 
-  addAppointment: (appointment) => set((state) => ({
-    appointments: [
-      { ...appointment, id: Math.random().toString(36).substr(2, 9) },
-      ...state.appointments
-    ]
-  })),
+  addAppointment: (appointment) => set((state) => {
+    const a = { ...appointment, id: Math.random().toString(36).substr(2, 9) };
+    appendToFirestore('appointments', a);
+    return {
+      appointments: [a, ...state.appointments]
+    };
+  }),
 
-  updateAppointmentStatus: (id, status) => set((state) => ({
-    appointments: state.appointments.map(a => a.id === id ? { ...a, status } : a)
-  })),
+  updateAppointmentStatus: (id, status) => set((state) => {
+    const a = state.appointments.find(x => x.id === id);
+    if(a) appendToFirestore('appointments', { ...a, status });
+    return { appointments: state.appointments.map(a => a.id === id ? { ...a, status } : a) };
+  }),
 
   curriculumTexts: {
     'WHITE': 'Bases Essenciais\nMovimentação 360º\nDefesas Pessoais Iniciais\nAtaques Rápidos',
@@ -293,13 +340,17 @@ export const useDataStore = create<DataState>((set, get) => ({
     }
   ],
 
-  addClassLog: (log) => set((state) => ({
-    classLogs: [...state.classLogs, { ...log, id: Math.random().toString(36).substr(2, 9) }]
-  })),
+  addClassLog: (log) => set((state) => {
+    const l = { ...log, id: Math.random().toString(36).substr(2, 9) };
+    appendToFirestore('classLogs', l);
+    return { classLogs: [...state.classLogs, l] };
+  }),
 
-  addVisit: (visit) => set((state) => ({
-    visits: [{ ...visit, id: Math.random().toString(36).substr(2, 9) }, ...state.visits]
-  })),
+  addVisit: (visit) => set((state) => {
+    const v = { ...visit, id: Math.random().toString(36).substr(2, 9) };
+    appendToFirestore('visits', v);
+    return { visits: [v, ...state.visits] };
+  }),
 
   importBackup: (backupData) => set((state) => {
     const validKeys = [
