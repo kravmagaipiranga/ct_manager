@@ -28,6 +28,10 @@ export const syncToFirebase = async () => {
        syncCollection(state.appointments, 'appointments');
        syncCollection(state.classLogs, 'classLogs');
        syncCollection(state.visits, 'visits');
+       syncCollection(state.academiesSettings, 'academiesSettings');
+
+       const globalsRef = doc(db, 'globals', 'curriculumTexts');
+       batch.set(globalsRef, { id: 'curriculumTexts', data: state.curriculumTexts }, { merge: true });
 
        await batch.commit();
        console.log("Data successfully synced to Firebase");
@@ -59,9 +63,17 @@ export const loadFromFirebase = async () => {
         const appointments = await loadCol('appointments');
         const classLogs = await loadCol('classLogs');
         const visits = await loadCol('visits');
-
-        const state = useDataStore.getState();
+        const academiesSettings = await loadCol('academiesSettings');
+        const globals = await loadCol('globals');
         
+        const state = useDataStore.getState();
+
+        let newCurriculumTexts = state.curriculumTexts;
+        const curriculumDoc = globals.find((g: any) => g.id === 'curriculumTexts');
+        if (curriculumDoc && curriculumDoc.data) {
+           newCurriculumTexts = { ...state.curriculumTexts, ...curriculumDoc.data };
+        }
+
         // Merge Firebase data with current mock data, favoring Firebase
         const mergeArrays = (local: any[], remote: any[]) => {
             const map = new Map();
@@ -81,7 +93,9 @@ export const loadFromFirebase = async () => {
             announcements: mergeArrays(state.announcements, announcements),
             appointments: mergeArrays(state.appointments, appointments),
             classLogs: mergeArrays(state.classLogs, classLogs),
-            visits: mergeArrays(state.visits, visits)
+            visits: mergeArrays(state.visits, visits),
+            academiesSettings: academiesSettings.length > 0 ? mergeArrays(state.academiesSettings, academiesSettings) : state.academiesSettings,
+            curriculumTexts: newCurriculumTexts
         });
 
         console.log("Data successfully loaded from Firebase");

@@ -43,6 +43,9 @@ export interface DataState {
   placeOrder: (studentId: string, items: { productId: string; quantity: number; variation?: string }[]) => void;
   updateOrderStatus: (orderId: string, status: OrderStatus) => void;
   markFinancialPaid: (recordId: string) => void;
+  addFinancial: (record: Omit<FinancialRecord, 'id' | 'paidAt'>) => void;
+  updateFinancial: (id: string, updates: Partial<FinancialRecord>) => void;
+  deleteFinancial: (id: string) => void;
 
   // phase 5 actions
   registerForEvent: (eventId: string, studentId: string) => void;
@@ -168,9 +171,12 @@ export const useDataStore = create<DataState>((set, get) => ({
   appointments: MOCK_APPOINTMENTS,
   visits: [],
   
-  updateAcademySettings: (academyId, newSettings) => set((state) => ({
-    academiesSettings: state.academiesSettings.map(s => s.id === academyId ? { ...s, ...newSettings } : s)
-  })),
+  updateAcademySettings: (academyId, newSettings) => set((state) => {
+    const updatedSettings = state.academiesSettings.map(s => s.id === academyId ? { ...s, ...newSettings } : s);
+    const updatedRecord = updatedSettings.find(s => s.id === academyId);
+    if(updatedRecord) appendToFirestore('academiesSettings', updatedRecord);
+    return { academiesSettings: updatedSettings };
+  }),
 
   // Global editability & creation
   addStudent: (studentData) => set((state) => {
@@ -298,6 +304,31 @@ export const useDataStore = create<DataState>((set, get) => ({
     return { financials: state.financials.map(f => f.id === recordId ? { ...f, status: 'PAID', paidAt: new Date().toISOString() } : f) };
   }),
 
+  addFinancial: (record) => set((state) => {
+    const r = { ...record, id: Math.random().toString(36).substr(2, 9) };
+    if (r.status === 'PAID') {
+      r.paidAt = new Date().toISOString();
+    }
+    appendToFirestore('financials', r);
+    return { financials: [r as FinancialRecord, ...state.financials] };
+  }),
+
+  updateFinancial: (id, updates) => set((state) => {
+    const r = state.financials.find(f => f.id === id);
+    if (!r) return state;
+    const finalRecord = { ...r, ...updates };
+    if (updates.status && updates.status !== r.status) {
+      if (updates.status === 'PAID') finalRecord.paidAt = new Date().toISOString();
+    }
+    appendToFirestore('financials', finalRecord);
+    return { financials: state.financials.map(f => f.id === id ? finalRecord : f) };
+  }),
+
+  deleteFinancial: (id) => set((state) => {
+    removeFromFirestore('financials', id);
+    return { financials: state.financials.filter(f => f.id !== id) };
+  }),
+
   registerForEvent: (eventId, studentId) => set((state) => {
     const e = state.events.find(x => x.id === eventId);
     if(e) appendToFirestore('events', { ...e, registeredCount: e.registeredCount + 1 });
@@ -339,9 +370,12 @@ export const useDataStore = create<DataState>((set, get) => ({
     'YELLOW': 'Saídas de Pegadas\nDefesas contra Facas Nível 1\nChutes Baixos'
   },
   
-  updateCurriculumText: (belt, content) => set((state) => ({
-    curriculumTexts: { ...state.curriculumTexts, [belt]: content }
-  })),
+  updateCurriculumText: (belt, content) => set((state) => {
+    const newTexts = { ...state.curriculumTexts, [belt]: content };
+    // We save this map inside a special document
+    appendToFirestore('globals', { id: 'curriculumTexts', data: newTexts });
+    return { curriculumTexts: newTexts };
+  }),
 
   classLogs: [
     {

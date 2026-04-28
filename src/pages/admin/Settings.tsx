@@ -4,6 +4,8 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { Save, CheckCircle, Image as ImageIcon, Download, UploadCloud, AlertTriangle } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
+import { syncToFirebase } from '../../store/syncFirebase';
+
 export default function Settings() {
   const user = useAuthStore((state) => state.user);
   const academiesSettings = useDataStore((state) => state.academiesSettings);
@@ -73,10 +75,11 @@ export default function Settings() {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       try {
         const json = JSON.parse(event.target?.result as string);
         importBackup(json);
+        await syncToFirebase();
         setBackupMsg('Dados importados com sucesso!');
       } catch (error) {
         console.error("Failed to parse backup:", error);
@@ -89,7 +92,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="p-6 md:p-8 flex flex-col h-full max-h-screen">
+    <div className="p-6 md:p-8 flex flex-col">
       <div className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight text-krav-text">Configurações</h1>
         <p className="text-sm text-krav-muted mt-1">Gerencie os detalhes do sistema e da sua unidade.</p>

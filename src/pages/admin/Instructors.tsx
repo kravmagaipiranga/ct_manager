@@ -106,7 +106,7 @@ export default function Instructors() {
   };
 
   return (
-    <div className="p-6 md:p-8 flex flex-col h-full max-h-screen bg-krav-bg">
+    <div className="p-6 md:p-8 flex flex-col bg-krav-bg">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 shrink-0">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-krav-text">Gestão de Instrutores</h1>

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useDataStore } from '../../store/useDataStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { BeltBadge } from '../../components/shared/BeltBadge';
@@ -36,7 +37,6 @@ export default function Students() {
   const [searchTerm, setSearchTerm] = useState('');
   const [beltFilter, setBeltFilter] = useState<Belt | 'ALL'>('ALL');
   const [currentPage, setCurrentPage] = useState(1);
-  const [editingStudent, setEditingStudent] = useState<User | null>(null);
   
   const ITEMS_PER_PAGE = 8;
 
@@ -61,16 +61,14 @@ export default function Students() {
     setCurrentPage(1);
   }, [searchTerm, beltFilter]);
 
+  const navigate = useNavigate();
+
   const handleEdit = (student: User) => {
-    setEditingStudent(student);
+    navigate(`/admin/students/${student.id}`);
   };
 
-  const handleSaveEdit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (editingStudent) {
-      updateStudent(editingStudent.id, editingStudent);
-      setEditingStudent(null);
-    }
+  const handleNew = () => {
+    navigate('/admin/students/new');
   };
 
   const handleExport = () => {
@@ -90,7 +88,7 @@ export default function Students() {
   };
 
   return (
-    <div className="p-6 md:p-8 flex flex-col h-full max-h-screen bg-krav-bg">
+    <div className="p-6 md:p-8 flex flex-col bg-krav-bg">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 shrink-0">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-krav-text">Gestão de Alunos</h1>
@@ -104,7 +102,10 @@ export default function Students() {
             <Download className="w-4 h-4" />
             <span className="hidden sm:inline">Exportar CSV</span>
           </button>
-          <button className="bg-krav-accent hover:bg-krav-accent-light text-white px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-colors shadow-sm">
+          <button 
+            onClick={handleNew}
+            className="bg-krav-accent hover:bg-krav-accent-light text-white px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-colors shadow-sm"
+          >
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">Novo Aluno</span>
           </button>
@@ -208,143 +209,6 @@ export default function Students() {
           
           <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
         </div>
-
-        {/* Edit Form / In-line */}
-        {editingStudent && (
-          <div className="flex-1 max-w-sm w-full shrink-0 flex flex-col bg-krav-card border border-krav-border rounded-xl shadow-sm overflow-hidden h-full">
-             <div className="p-5 border-b border-krav-border bg-krav-bg/50 flex justify-between items-center shrink-0">
-               <h3 className="font-bold flex items-center gap-2 text-krav-text">
-                 <UserCircle className="w-5 h-5 text-krav-accent" />
-                 Editar Aluno
-               </h3>
-               <button onClick={() => setEditingStudent(null)} className="text-krav-muted hover:text-krav-danger p-1">
-                 <X className="w-5 h-5" />
-               </button>
-             </div>
-             
-             <form onSubmit={handleSaveEdit} className="p-5 flex-1 overflow-y-auto flex flex-col gap-5 bg-krav-card">
-                <div className="flex flex-col gap-3">
-                   <ContactActions phone={editingStudent.phone} email={editingStudent.email} iconOnly={false} align="center" className="pb-3 border-b border-krav-border" />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-krav-text mb-1.5 uppercase tracking-wider">Nome do Aluno</label>
-                  <input type="text" value={editingStudent.name} onChange={e => setEditingStudent({...editingStudent, name: e.target.value})} className="w-full bg-krav-bg text-sm border border-krav-border focus:border-krav-accent p-2.5 rounded-lg transition-colors outline-none" required />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-krav-text mb-1.5 uppercase tracking-wider">Email</label>
-                  <input type="email" value={editingStudent.email} onChange={e => setEditingStudent({...editingStudent, email: e.target.value})} className="w-full bg-krav-bg text-sm border border-krav-border focus:border-krav-accent p-2.5 rounded-lg transition-colors outline-none" required />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-krav-text mb-1.5 uppercase tracking-wider">Telefone</label>
-                  <input type="text" value={editingStudent.phone || ''} onChange={e => setEditingStudent({...editingStudent, phone: e.target.value})} className="w-full bg-krav-bg text-sm border border-krav-border focus:border-krav-accent p-2.5 rounded-lg transition-colors outline-none" />
-                </div>
-
-                {/* Additional Registration Info */}
-                <div className="pt-2 border-t border-krav-border flex flex-col gap-5">
-                  <h4 className="font-bold text-xs text-krav-accent uppercase tracking-wider">Detalhes Pessoais</h4>
-                  <div className="grid grid-cols-2 gap-3">
-                     <div>
-                       <label className="block text-[10px] font-bold text-krav-muted mb-1 uppercase tracking-wider">CPF</label>
-                       <input type="text" value={editingStudent.cpf || ''} onChange={e => setEditingStudent({...editingStudent, cpf: e.target.value})} className="w-full bg-krav-bg text-sm border border-krav-border p-2 rounded-lg" placeholder="000.000.000-00" />
-                     </div>
-                     <div>
-                       <label className="block text-[10px] font-bold text-krav-muted mb-1 uppercase tracking-wider">Data de Nascimento</label>
-                       <input type="date" value={editingStudent.birthDate || ''} onChange={e => setEditingStudent({...editingStudent, birthDate: e.target.value})} className="w-full bg-krav-bg text-sm border border-krav-border p-2 rounded-lg" />
-                     </div>
-                  </div>
-                </div>
-
-                <div className="pt-2 border-t border-krav-border flex flex-col gap-3">
-                  <h4 className="font-bold text-xs text-krav-accent uppercase tracking-wider">Uniforme</h4>
-                  <div className="grid grid-cols-2 gap-2">
-                     <div>
-                       <label className="block text-[10px] font-bold text-krav-muted mb-1 uppercase tracking-wider">Tam. Camiseta</label>
-                       <input type="text" value={editingStudent.shirtSize || ''} onChange={e => setEditingStudent({...editingStudent, shirtSize: e.target.value})} className="w-full bg-krav-bg text-sm border border-krav-border p-2 rounded-lg" placeholder="M, G..." />
-                     </div>
-                     <div>
-                        <label className="block text-[10px] font-bold text-krav-muted mb-1 uppercase tracking-wider">Tam. Calça</label>
-                        <input type="text" value={editingStudent.pantsSize || ''} onChange={e => setEditingStudent({...editingStudent, pantsSize: e.target.value})} className="w-full bg-krav-bg text-sm border border-krav-border p-2 rounded-lg" placeholder="42, G..." />
-                     </div>
-                  </div>
-                </div>
-
-                {/* Health & Emergency */}
-                <div className="pt-4 border-t border-krav-border flex flex-col gap-3">
-                  <h4 className="font-bold text-xs text-krav-accent uppercase tracking-wider">Emergência</h4>
-                  <div className="grid grid-cols-3 gap-3">
-                     <div className="col-span-1">
-                       <label className="block text-[10px] font-bold text-krav-muted mb-1 uppercase tracking-wider">Nome</label>
-                       <input type="text" value={editingStudent.emergencyContact?.name || ''} onChange={e => setEditingStudent({...editingStudent, emergencyContact: {...editingStudent.emergencyContact, name: e.target.value} as any})} className="w-full bg-krav-bg text-sm border border-krav-border p-2 rounded-lg" placeholder="Nome" />
-                     </div>
-                     <div className="col-span-1">
-                       <label className="block text-[10px] font-bold text-krav-muted mb-1 uppercase tracking-wider">Telefone</label>
-                       <input type="text" value={editingStudent.emergencyContact?.phone || ''} onChange={e => setEditingStudent({...editingStudent, emergencyContact: {...editingStudent.emergencyContact, phone: e.target.value} as any})} className="w-full bg-krav-bg text-sm border border-krav-border p-2 rounded-lg" placeholder="Telefone" />
-                     </div>
-                     <div className="col-span-1">
-                       <label className="block text-[10px] font-bold text-krav-muted mb-1 uppercase tracking-wider">Parentesco</label>
-                       <input type="text" value={editingStudent.emergencyContact?.relationship || ''} onChange={e => setEditingStudent({...editingStudent, emergencyContact: {...editingStudent.emergencyContact, relationship: e.target.value} as any})} className="w-full bg-krav-bg text-sm border border-krav-border p-2 rounded-lg" placeholder="Mãe, Pai..." />
-                     </div>
-                  </div>
-                </div>
-                
-                <div className="pt-4 border-t border-krav-border">
-                  <label className="block text-xs font-bold text-krav-text mb-1.5 uppercase tracking-wider">Graduação Ativa</label>
-                  <div className="flex items-center gap-4 bg-krav-bg p-2.5 rounded-lg border border-krav-border">
-                    <select value={editingStudent.beltLevel} onChange={e => setEditingStudent({...editingStudent, beltLevel: e.target.value as Belt})} className="w-full bg-transparent text-sm appearance-none outline-none font-medium">
-                      <option value="WHITE">Branca</option>
-                      <option value="YELLOW">Amarela</option>
-                      <option value="ORANGE">Laranja</option>
-                      <option value="GREEN">Verde</option>
-                      <option value="BLUE">Azul</option>
-                      <option value="BROWN">Marrom</option>
-                      <option value="BLACK">Preta</option>
-                    </select>
-                    <BeltBadge belt={editingStudent.beltLevel} className="shrink-0" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-krav-text mb-1.5 uppercase tracking-wider">Matrícula</label>
-                    <select value={editingStudent.enrollmentStatus} onChange={e => setEditingStudent({...editingStudent, enrollmentStatus: e.target.value as Status})} className="w-full bg-krav-bg text-sm border border-krav-border focus:border-krav-accent p-2.5 rounded-lg transition-colors outline-none font-medium">
-                      <option value="ACTIVE">Ativo</option>
-                      <option value="PENDING">Pendente</option>
-                      <option value="SUSPENDED">Suspenso</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-krav-text mb-1.5 uppercase tracking-wider">Financeiro</label>
-                    <select value={editingStudent.financialStatus} onChange={e => setEditingStudent({...editingStudent, financialStatus: e.target.value as Status})} className="w-full bg-krav-bg text-sm border border-krav-border focus:border-krav-accent p-2.5 rounded-lg transition-colors outline-none font-medium">
-                      <option value="ACTIVE">Em Dia</option>
-                      <option value="PENDING">Pendente</option>
-                      <option value="OVERDUE">Atrasado</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="pt-2 border-t border-krav-border">
-                  <label className="block text-xs font-bold text-krav-text mb-1.5 uppercase tracking-wider">Delegar Instrutor</label>
-                  <select 
-                    value={editingStudent.instructorId || ''} 
-                    onChange={e => setEditingStudent({...editingStudent, instructorId: e.target.value || undefined})} 
-                    className="w-full bg-krav-bg text-sm border border-krav-border focus:border-krav-accent p-2.5 rounded-lg transition-colors outline-none font-medium"
-                    disabled={user?.role === 'INSTRUCTOR'}
-                  >
-                    <option value="">Sem instrutor vinculado (Geral)</option>
-                    {instructorsList.map(inst => (
-                      <option key={inst.id} value={inst.id}>{inst.name}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="mt-auto pt-6 pb-20 xl:pb-0">
-                  <button type="submit" className="w-full bg-krav-accent text-white font-bold py-3.5 text-sm rounded-xl hover:bg-krav-accent-light transition-colors flex items-center justify-center gap-2 shadow-md">
-                    <Save className="w-4 h-4" /> Salvar Alterações
-                  </button>
-                </div>
-             </form>
-          </div>
-        )}
       </div>
     </div>
   );

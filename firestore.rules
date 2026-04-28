@@ -90,5 +90,17 @@ service cloud.firestore {
       allow create: if isSignedIn();
       allow update: if isSignedIn();
     }
+
+    match /academiesSettings/{settingId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+    }
+
+    match /globals/{globalId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+    }
   }
 }

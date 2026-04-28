@@ -61,7 +61,7 @@ export default function Checkins() {
   };
 
   return (
-    <div className="p-4 sm:p-6 md:p-8 flex flex-col h-full max-h-screen">
+    <div className="p-4 sm:p-6 md:p-8 flex flex-col">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 shrink-0">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-krav-text">Fila de Check-ins</h1>

@@ -74,7 +74,7 @@ export default function Curriculum() {
   const beltLines = (curriculumTexts[activeBelt] || '').split('\n').filter(l => l.trim() !== '');
 
   return (
-    <div className="p-4 sm:p-6 md:p-8 flex flex-col h-full max-h-screen">
+    <div className="p-4 sm:p-6 md:p-8 flex flex-col">
       <div className="flex justify-between items-start mb-6 shrink-0">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-krav-text">Gestão de Currículo</h1>
@@ -101,7 +101,7 @@ export default function Curriculum() {
         </button>
       </div>
 
-      <div className="flex flex-col gap-6 flex-1 overflow-hidden max-w-4xl border border-krav-border rounded-xl bg-krav-card p-4 sm:p-6 shadow-sm">
+      <div className="flex flex-col gap-6 max-w-4xl border border-krav-border rounded-xl bg-krav-card p-4 sm:p-6 shadow-sm mb-8">
         
         {/* Belt filter logic that is common */}
         <div className="flex flex-wrap gap-2 justify-center w-full border-b border-krav-border pb-4 shrink-0">
@@ -117,7 +117,7 @@ export default function Curriculum() {
         </div>
 
         {activeTab === 'TEMPLATE' && (
-          <div className="flex-1 flex flex-col relative w-full overflow-hidden">
+          <div className="flex flex-col relative w-full">
             <div className="flex justify-between items-center mb-4">
                <h3 className="font-bold text-sm text-krav-text">Matérias Oficiais da Faixa</h3>
                <button 
@@ -136,7 +136,7 @@ export default function Curriculum() {
                 setIsSaved(false);
               }}
               placeholder="Digite as técnicas. Use uma linha para cada técnica..."
-              className="w-full flex-1 p-4 bg-krav-bg border border-krav-border rounded-xl resize-none focus:outline-none focus:border-krav-accent focus:ring-1 focus:ring-krav-accent leading-relaxed text-sm font-medium text-krav-text"
+              className="w-full min-h-[400px] p-4 bg-krav-bg border border-krav-border rounded-xl resize-y focus:outline-none focus:border-krav-accent focus:ring-1 focus:ring-krav-accent leading-relaxed text-sm font-medium text-krav-text"
             />
             {!content && (
               <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center opacity-30 mt-10">
@@ -148,7 +148,7 @@ export default function Curriculum() {
         )}
 
         {activeTab === 'LOGS' && (
-          <div className="flex-1 flex flex-col w-full overflow-hidden">
+          <div className="flex flex-col w-full">
              
              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 shrink-0 bg-krav-bg p-4 rounded-xl border border-krav-border">
                 <div className="flex flex-col gap-1.5">
@@ -179,13 +179,13 @@ export default function Curriculum() {
                 </div>
              </div>
 
-             <div className="flex-1 overflow-y-auto mb-4 border border-krav-border rounded-xl bg-krav-card shadow-sm flex flex-col">
+             <div className="mb-4 border border-krav-border rounded-xl bg-krav-card shadow-sm flex flex-col">
                 <div className="bg-black/5 px-4 py-3 border-b border-krav-border shrink-0">
                   <h3 className="font-bold text-sm tracking-widest uppercase text-krav-muted">O que foi ministrado nesta faixa?</h3>
                 </div>
                 
                 {beltLines.length > 0 ? (
-                  <div className="flex flex-col divide-y divide-krav-border overflow-y-auto">
+                  <div className="flex flex-col divide-y divide-krav-border">
                     {beltLines.map((technique, idx) => {
                       const isChecked = checkedTechniques.includes(technique);
                       return (

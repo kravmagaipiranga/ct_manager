@@ -85,7 +85,7 @@ export default function Dashboard() {
       </section>
 
       {/* Approvals Section (Matrículas) */}
-      <section className="col-span-1 md:col-span-2 lg:col-span-2 bg-krav-card border border-krav-border rounded-xl flex flex-col overflow-hidden max-h-[480px] shadow-sm">
+      <section className="col-span-1 md:col-span-2 lg:col-span-2 bg-krav-card border border-krav-border rounded-xl flex flex-col shadow-sm">
         <div className="px-5 py-4 border-b border-krav-border flex justify-between items-center shrink-0 bg-black/5 dark:bg-krav-card/5">
           <h2 className="text-sm font-bold uppercase tracking-wide flex items-center gap-2">
             Matrículas Pendentes
@@ -93,7 +93,7 @@ export default function Dashboard() {
           </h2>
         </div>
 
-        <div className="overflow-y-auto flex-1 p-0">
+        <div className="flex-1 p-0">
           {pendingReg.length > 0 ? (
             pendingReg.map(s => (
               <ListItem
@@ -114,7 +114,7 @@ export default function Dashboard() {
       </section>
 
       {/* Approvals Section (Check-ins) */}
-      <section className="col-span-1 md:col-span-2 lg:col-span-2 bg-krav-card border border-krav-border rounded-xl flex flex-col overflow-hidden max-h-[480px] shadow-sm">
+      <section className="col-span-1 md:col-span-2 lg:col-span-2 bg-krav-card border border-krav-border rounded-xl flex flex-col shadow-sm">
         <div className="px-5 py-4 border-b border-krav-border flex justify-between items-center shrink-0 bg-black/5 dark:bg-krav-card/5">
           <h2 className="text-sm font-bold uppercase tracking-wide flex items-center gap-2">
             Aprovar Check-ins
@@ -122,7 +122,7 @@ export default function Dashboard() {
           </h2>
         </div>
 
-        <div className="overflow-y-auto flex-1 p-0">
+        <div className="flex-1 p-0">
           {pendingCheckins.length > 0 ? (
             pendingCheckins.map(c => {
               const student = students.find(s => s.id === c.studentId);
@@ -180,7 +180,7 @@ export default function Dashboard() {
             Inadimplência Crítica
           </h2>
           
-          <div className="flex flex-col gap-0 overflow-y-auto max-h-[200px] pr-2">
+          <div className="flex flex-col gap-0 pr-2">
             {financials.filter(f => {
               const s = students.find(st => st.id === f.studentId);
               return s?.academyId === user?.academyId && f.status === 'OVERDUE';

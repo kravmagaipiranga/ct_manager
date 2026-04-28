@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useDataStore } from '../../store/useDataStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { ShoppingBag, Box, Package, Check, Plus, Edit, Trash2, X, Save, Download } from 'lucide-react';
@@ -31,11 +32,6 @@ export default function StoreAdmin() {
   // Navigation State
   const [activeTab, setActiveTab] = useState<'ORDERS' | 'PRODUCTS'>('ORDERS');
   
-  // Form State
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [formData, setFormData] = useState({ name: '', description: '', price: 0, stock: 0, imageUrl: '', variationsString: '' });
-
   // Pagination State
   const [ordersPage, setOrdersPage] = useState(1);
   const [productsPage, setProductsPage] = useState(1);
@@ -79,41 +75,14 @@ export default function StoreAdmin() {
     );
   };
 
+  const navigate = useNavigate();
+
   const handleOpenForm = (product?: Product) => {
     if (product) {
-       setEditingId(product.id);
-       setFormData({
-         name: product.name,
-         description: product.description || '',
-         price: product.price,
-         stock: product.stock || 0,
-         imageUrl: product.imageUrl || '',
-         variationsString: product.variations ? product.variations.join(', ') : ''
-       });
+       navigate(`/admin/store/${product.id}`);
     } else {
-       setEditingId(null);
-       setFormData({ name: '', description: '', price: 0, stock: 0, imageUrl: '', variationsString: '' });
+       navigate('/admin/store/new');
     }
-    setIsFormOpen(true);
-  };
-
-  const handleSaveProduct = (e: React.FormEvent) => {
-    e.preventDefault();
-    const saveData = {
-       ...formData,
-       variations: formData.variationsString.split(',').map(s => s.trim()).filter(Boolean)
-    };
-    if (editingId) {
-      updateProduct(editingId, saveData);
-      toast.success('Produto atualizado com sucesso!');
-    } else {
-      addProduct({
-         id: Math.random().toString(36).substr(2, 9),
-         ...saveData
-      });
-      toast.success('Produto cadastrado com sucesso!');
-    }
-    setIsFormOpen(false);
   };
 
   const handleUpdateOrderStatus = (id: string, newStatus: OrderStatus) => {
@@ -122,7 +91,7 @@ export default function StoreAdmin() {
   };
 
   return (
-    <div className="p-6 md:p-8 flex flex-col h-full bg-krav-bg">
+    <div className="p-6 md:p-8 flex flex-col bg-krav-bg">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 shrink-0 z-10">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-krav-text">Loja e Produtos</h1>
@@ -157,8 +126,8 @@ export default function StoreAdmin() {
         </div>
       </div>
 
-      <div className="flex gap-6 flex-1 min-h-0">
-        <div className="bg-krav-card border border-krav-border rounded-xl flex-1 flex flex-col overflow-hidden shadow-sm">
+      <div className="flex gap-6 mb-8">
+        <div className="bg-krav-card border border-krav-border rounded-xl flex-1 flex flex-col shadow-sm">
           {/* Tabs */}
           <div className="flex gap-2 border-b border-krav-border p-2 shrink-0 bg-black/[0.02]">
             <button 
@@ -181,7 +150,7 @@ export default function StoreAdmin() {
 
           {/* --- ORDERS VIEW --- */}
           {activeTab === 'ORDERS' && (
-             <div className="flex flex-col h-full overflow-hidden">
+             <div className="flex flex-col">
                <div className="flex-1 overflow-x-auto">
                  <table className="w-full text-left border-collapse min-w-[600px]">
                    <thead className="bg-krav-card sticky top-0 border-b border-krav-border z-10">
@@ -254,8 +223,8 @@ export default function StoreAdmin() {
 
           {/* --- PRODUCTS DIRECTORY VIEW --- */}
           {activeTab === 'PRODUCTS' && (
-            <div className="flex flex-col h-full bg-krav-bg">
-              <div className="p-6 flex-1 overflow-y-auto">
+            <div className="flex flex-col bg-krav-bg">
+              <div className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {paginatedProducts.map(p => (
                     <div key={p.id} onClick={() => handleOpenForm(p)} className="cursor-pointer border border-krav-border rounded-lg p-4 bg-krav-card hover:border-krav-accent hover:shadow-md transition-all flex flex-col group relative overflow-hidden">
@@ -291,57 +260,6 @@ export default function StoreAdmin() {
             </div>
           )}
         </div>
-
-        {/* --- PRODUCT EDIT / CREATE FORM IN-LINE --- */}
-        {activeTab === 'PRODUCTS' && isFormOpen && (
-          <div className="flex-1 max-w-sm w-full shrink-0 flex flex-col bg-krav-card border border-krav-border rounded-xl shadow-sm overflow-hidden h-full">
-             <div className="p-5 border-b border-krav-border bg-black/5 flex justify-between items-center shrink-0">
-               <h3 className="font-bold flex items-center gap-2 text-krav-text">
-                 <Box className="w-5 h-5 text-krav-accent" />
-                 {editingId ? 'Editar Produto' : 'Novo Produto'}
-               </h3>
-               <button onClick={() => setIsFormOpen(false)} className="text-krav-muted hover:text-krav-danger p-1">
-                 <X className="w-5 h-5" />
-               </button>
-             </div>
-                       <form onSubmit={handleSaveProduct} className="p-5 flex-1 overflow-y-auto flex flex-col gap-5 bg-krav-bg">
-                <div>
-                  <label className="block text-xs font-bold text-krav-text mb-1.5 uppercase tracking-wider">Nome do Produto</label>
-                  <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-krav-card text-sm border border-krav-border focus:border-krav-accent p-2.5 rounded-lg transition-colors outline-none" required />
-                </div>
-                
-                <div>
-                  <label className="block text-xs font-bold text-krav-text mb-1.5 uppercase tracking-wider">Preço (R$)</label>
-                  <input type="number" step="0.01" min="0" value={formData.price} onChange={e => setFormData({...formData, price: parseFloat(e.target.value) || 0})} className="w-full bg-krav-card text-sm border border-krav-border focus:border-krav-accent p-2.5 rounded-lg transition-colors outline-none font-medium" required />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-krav-text mb-1.5 uppercase tracking-wider">Variações (Opcional)</label>
-                  <input type="text" placeholder="Ex: P, M, G, GG ou Branco, Preto" value={formData.variationsString} onChange={e => setFormData({...formData, variationsString: e.target.value})} className="w-full bg-krav-card text-sm border border-krav-border focus:border-krav-accent p-2.5 rounded-lg transition-colors outline-none" />
-                  <p className="text-[10px] text-krav-muted mt-1 uppercase tracking-wider">Separe as opções por vírgula</p>
-                </div>
-
-                <div>
-                   <label className="block text-xs font-bold text-krav-text mb-1.5 uppercase tracking-wider">Imagem do Produto</label>
-                   <div className="flex gap-2 items-center">
-                     <input type="url" placeholder="https://..." value={formData.imageUrl} onChange={e => setFormData({...formData, imageUrl: e.target.value})} className="flex-1 bg-krav-card text-sm border border-krav-border focus:border-krav-accent p-2.5 rounded-lg transition-colors outline-none" />
-                     <button type="button" onClick={() => {
-                        const url = prompt('Cole a URL da imagem:');
-                        if(url) setFormData({...formData, imageUrl: url});
-                     }} className="bg-krav-card border border-krav-border text-krav-text px-4 py-2.5 rounded-lg hover:bg-black/5 transition-colors text-sm font-semibold shadow-sm">
-                       Upload
-                     </button>
-                   </div>
-                </div>
-
-                <div className="mt-auto pt-6 pb-20 xl:pb-0">
-                  <button type="submit" className="w-full bg-krav-accent text-white font-bold py-3.5 text-sm rounded-xl hover:bg-krav-accent-light transition-colors flex items-center justify-center gap-2 shadow-md">
-                    <Save className="w-4 h-4" /> {editingId ? 'Salvar Alterações' : 'Cadastrar Produto'}
-                  </button>
-                </div>
-             </form>
-          </div>
-        )}
       </div>
     </div>
   );

@@ -15,13 +15,20 @@ import Instructors from './pages/admin/Instructors';
 import Students from './pages/admin/Students';
 import Checkins from './pages/admin/Checkins';
 import Schedule from './pages/admin/Schedule';
+import ScheduleForm from './pages/admin/ScheduleForm';
 import Exams from './pages/admin/Exams';
+import ExamStudentsForm from './pages/admin/ExamStudentsForm';
 import Appointments from './pages/admin/Appointments';
 import Financial from './pages/admin/Financial';
+import FinancialForm from './pages/admin/FinancialForm';
 import StoreAdmin from './pages/admin/StoreAdmin';
+import StoreProductForm from './pages/admin/StoreProductForm';
 import Events from './pages/admin/Events';
 import Curriculum from './pages/admin/Curriculum';
 import Settings from './pages/admin/Settings';
+import StudentForm from './pages/admin/StudentForm';
+import AnnouncementForm from './pages/admin/AnnouncementForm';
+import EventForm from './pages/admin/EventForm';
 
 import StudentLayout from './components/layout/StudentLayout';
 import StudentHome from './pages/student/Home';
@@ -85,14 +92,27 @@ export default function App() {
           <Route path="dashboard" element={user?.role === 'INSTRUCTOR' ? <InstructorDashboard /> : <AdminDashboard />} />
           <Route path="instructors" element={<Instructors />} />
           <Route path="students" element={<Students />} />
+          <Route path="students/new" element={<StudentForm />} />
+          <Route path="students/:id" element={<StudentForm />} />
           <Route path="checkins" element={<Checkins />} />
           <Route path="schedule" element={<Schedule />} />
+          <Route path="schedule/new" element={<ScheduleForm />} />
+          <Route path="schedule/:id" element={<ScheduleForm />} />
           <Route path="exams" element={<Exams />} />
+          <Route path="exams/:id" element={<ExamStudentsForm />} />
           <Route path="appointments" element={<Appointments />} />
           <Route path="reports" element={<Reports />} />
           <Route path="financial" element={<Financial />} />
+          <Route path="financial/new" element={<FinancialForm />} />
+          <Route path="financial/:id" element={<FinancialForm />} />
           <Route path="store" element={<StoreAdmin />} />
+          <Route path="store/new" element={<StoreProductForm />} />
+          <Route path="store/:id" element={<StoreProductForm />} />
           <Route path="events" element={<Events />} />
+          <Route path="events/new" element={<EventForm />} />
+          <Route path="events/:id" element={<EventForm />} />
+          <Route path="announcements/new" element={<AnnouncementForm />} />
+          <Route path="announcements/:id" element={<AnnouncementForm />} />
           <Route path="curriculum" element={<Curriculum />} />
           <Route path="settings" element={<Settings />} />
           

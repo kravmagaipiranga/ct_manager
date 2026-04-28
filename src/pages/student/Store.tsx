@@ -57,7 +57,7 @@ export default function StudentStore() {
   const totalCartItems = cart.reduce((a,b)=>a+b.quantity,0);
 
   return (
-    <div className="p-5 md:p-8 flex flex-col h-full bg-krav-bg">
+    <div className="p-5 md:p-8 flex flex-col bg-krav-bg">
       <div className="flex justify-between items-start mb-6 shrink-0 relative">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-krav-text">Loja Oficial</h1>

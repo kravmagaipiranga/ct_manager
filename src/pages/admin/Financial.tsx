@@ -3,13 +3,15 @@ import { useDataStore } from '../../store/useDataStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { StatusPill } from '../../components/shared/StatusPill';
 import { ContactActions } from '../../components/shared/ContactActions';
-import { Download, Filter, Search, CheckCircle } from 'lucide-react';
+import { Download, Filter, Search, CheckCircle, Plus, Edit2 } from 'lucide-react';
 import { FinancialStatus } from '../../types';
 import { Pagination } from '../../components/shared/Pagination';
 import { exportToCSV } from '../../lib/csv';
+import { useNavigate } from 'react-router-dom';
 
 export default function Financial() {
   const user = useAuthStore((state) => state.user);
+  const navigate = useNavigate();
   const financials = useDataStore((state) => state.financials);
   const students = useDataStore((state) => state.students);
   const markFinancialPaid = useDataStore((state) => state.markFinancialPaid);
@@ -60,19 +62,28 @@ export default function Financial() {
   };
 
   return (
-    <div className="p-6 md:p-8 flex flex-col h-full max-h-screen">
+    <div className="p-6 md:p-8 flex flex-col">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 shrink-0">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-krav-text">Gestão Financeira</h1>
           <p className="text-sm text-krav-muted mt-1">Acompanhe mensalidades e recebimentos da academia.</p>
         </div>
-        <button 
-          onClick={handleExport}
-          className="bg-krav-card border border-krav-border text-krav-text hover:bg-black/5 px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-colors shadow-sm"
-        >
-          <Download className="w-4 h-4" />
-          Exportar CSV
-        </button>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={handleExport}
+            className="bg-krav-card border border-krav-border text-krav-text hover:bg-black/5 px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-colors shadow-sm"
+          >
+            <Download className="w-4 h-4" />
+            Exportar CSV
+          </button>
+          <button 
+            onClick={() => navigate('/admin/financial/new')}
+            className="bg-krav-accent text-white px-4 py-2 rounded-lg font-medium text-sm hover:bg-krav-accent/90 transition-colors shadow-sm flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Registrar Pagamento
+          </button>
+        </div>
       </div>
 
       {/* Snapshot Cards */}
@@ -93,7 +104,7 @@ export default function Financial() {
          </div>
       </div>
 
-      <div className="bg-krav-card border border-krav-border rounded-xl flex-1 flex flex-col overflow-hidden shadow-sm">
+      <div className="bg-krav-card border border-krav-border rounded-xl flex flex-col mb-8 shadow-sm">
         {/* Toolbar */}
         <div className="p-4 border-b border-krav-border flex flex-col sm:flex-row gap-4 justify-between bg-krav-card shrink-0">
           <div className="relative max-w-md w-full">
@@ -123,9 +134,9 @@ export default function Financial() {
         </div>
 
         {/* Table Container */}
-        <div className="flex-1 overflow-auto">
+        <div className="w-full overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[700px]">
-            <thead className="bg-krav-bg/50 sticky top-0 z-10 shadow-sm border-b border-krav-border backdrop-blur">
+            <thead className="bg-krav-bg/50 border-b border-krav-border text-krav-muted">
               <tr>
                 <th className="font-semibold text-xs text-krav-muted uppercase tracking-wider py-3 px-6">Referência</th>
                 <th className="font-semibold text-xs text-krav-muted uppercase tracking-wider py-3 px-6">Aluno</th>
@@ -158,15 +169,24 @@ export default function Financial() {
                       <StatusPill status={item.status as any} />
                     </td>
                     <td className="py-3 px-6 text-right">
-                      {(item.status === 'PENDING' || item.status === 'OVERDUE') && (
+                      <div className="flex items-center justify-end gap-2">
+                        {item.status === 'PENDING' || item.status === 'OVERDUE' ? (
+                          <button 
+                            onClick={() => markFinancialPaid(item.id)}
+                            title="Dar Baixa"
+                            className="p-1.5 rounded-lg text-krav-muted hover:text-krav-success hover:bg-krav-success/10 transition-colors"
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                          </button>
+                        ) : null}
                         <button 
-                          onClick={() => markFinancialPaid(item.id)}
-                          className="bg-krav-card border border-krav-border text-krav-text hover:text-krav-success hover:border-krav-success hover:bg-krav-success/5 px-3 py-1.5 rounded text-xs font-bold transition-colors inline-flex items-center gap-1.5"
+                          onClick={() => navigate(`/admin/financial/${item.id}`)}
+                          title="Editar Registro"
+                          className="p-1.5 rounded-lg text-krav-muted hover:text-white hover:bg-white/10 transition-colors"
                         >
-                          <CheckCircle className="w-3.5 h-3.5" />
-                          Dar Baixa
+                          <Edit2 className="w-4 h-4" />
                         </button>
-                      )}
+                      </div>
                     </td>
                   </tr>
                 ))
