@@ -11,7 +11,23 @@ export default function StudentCurriculum() {
   const checkins = useDataStore((state) => state.checkins);
   const classLogs = useDataStore((state) => state.classLogs).filter(log => log.academyId === user?.academyId);
   
-  if (!user || !user.beltLevel) return null;
+  if (!user) return null;
+
+  if (!user.beltLevel) {
+    return (
+      <div className="p-4 sm:p-6 md:p-8 flex flex-col max-w-3xl mx-auto w-full bg-krav-bg">
+        <div className="mb-6 shrink-0 z-10">
+          <h1 className="text-2xl font-bold tracking-tight text-krav-text">Currículo de Graduação</h1>
+          <p className="text-sm text-krav-muted mt-1">Lista de técnicas necessárias para a sua graduação atual.</p>
+        </div>
+        <div className="flex flex-col items-center justify-center h-64 text-center border border-dashed border-krav-border rounded-xl bg-krav-card shadow-sm p-6">
+           <BookOpen className="w-12 h-12 text-krav-border mb-4" />
+           <p className="text-krav-text font-medium text-lg">Faixa Não Atribuída</p>
+           <p className="text-sm text-krav-muted mt-2 max-w-sm">O seu instrutor ainda não definiu a sua faixa atual no sistema.</p>
+        </div>
+      </div>
+    );
+  }
 
   // Derive accomplished techniques based on attendance and logs
   const accomplishedTechniques = useMemo(() => {

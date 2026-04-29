@@ -54,7 +54,6 @@ export default function ScheduleForm() {
           daysOfWeek: [cls.dayOfWeek], // cls.dayOfWeek is a number
           times: [cls.time], // cls.time is a string
           newTimeInput: '',
-          capacity: cls.capacity || 20,
           allowedBelts: cls.allowedBelts || [],
           otherModalities: cls.otherModalities || []
         });

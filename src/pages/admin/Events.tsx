@@ -55,19 +55,19 @@ export default function Announcements() {
 
   const handleExport = () => {
     if (activeTab === 'Avisos') {
-      exportToCSV(
+      exportToCSV<any>(
         announcements,
         [
           { header: 'Título', key: 'title' },
           { header: 'Autor', key: 'authorName' },
-          { header: 'Fixo', key: (item) => item.isPinned ? 'Sim' : 'Não' },
+          { header: 'Fixo', key: (item: any) => item.isPinned ? 'Sim' : 'Não' },
           { header: 'Conteúdo', key: 'content' },
           { header: 'Data', key: 'createdAt' }
         ],
         'Relatorio_Avisos'
       );
     } else {
-      exportToCSV(
+      exportToCSV<any>(
         events,
         [
           { header: 'Título', key: 'title' },

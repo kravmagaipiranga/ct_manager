@@ -86,7 +86,7 @@ export default function AdminLayout() {
   };
 
   const navItems = user?.role === 'INSTRUCTOR' 
-    ? ALL_NAV_ITEMS.filter(i => !['Curriculum', 'Configurações'].includes(i.label))
+    ? ALL_NAV_ITEMS.filter(i => !['Configurações'].includes(i.label))
     : ALL_NAV_ITEMS;
 
   const MOCK_NOTIFICATIONS = [

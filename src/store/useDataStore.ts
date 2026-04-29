@@ -260,9 +260,9 @@ export const useDataStore = create<DataState>((set, get) => ({
   }),
 
   addProduct: (product) => set((state) => {
-    const p = { ...product, id: product.id || Math.random().toString(36).substr(2, 9) };
-    appendToFirestore('products', p);
-    return { products: [p, ...state.products] };
+    const p = { ...product, id: Math.random().toString(36).substr(2, 9) };
+    appendToFirestore('products', p as any);
+    return { products: [p as any, ...state.products] };
   }),
 
   updateProduct: (id, updates) => set((state) => {
@@ -316,7 +316,7 @@ export const useDataStore = create<DataState>((set, get) => ({
   }),
 
   addFinancial: (record) => set((state) => {
-    const r = { ...record, id: Math.random().toString(36).substr(2, 9) };
+    const r: any = { ...record, id: Math.random().toString(36).substr(2, 9) };
     if (r.status === 'PAID') {
       r.paidAt = new Date().toISOString();
     }
@@ -396,6 +396,7 @@ export const useDataStore = create<DataState>((set, get) => ({
         return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
       })(),
       classId: 'c1', // Assuming c1 is valid for today (modify if needed)
+      academyId: '1',
       belt: 'WHITE',
       techniques: ['Bases Essenciais', 'Movimentação 360º']
     }

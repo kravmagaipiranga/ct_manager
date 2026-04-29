@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAuthStore } from '../../store/useAuthStore';
 import { useDataStore } from '../../store/useDataStore';
 import { BeltBadge } from '../../components/shared/BeltBadge';
 import { BookOpen, Check, Calendar, CheckSquare, ListTodo, ClipboardEdit } from 'lucide-react';
@@ -57,7 +58,6 @@ export default function Curriculum() {
   const handleSaveLog = () => {
     if (!logClassId) return;
     addClassLog({
-      id: Math.random().toString(36).substr(2, 9),
       academyId: user?.academyId || '',
       dateStr: logDate,
       classId: logClassId,
