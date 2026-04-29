@@ -71,6 +71,7 @@ export type VisitType = 'TRIAL' | 'VISIT';
 
 export interface Visit {
   id: string;
+  academyId: string;
   type: VisitType;
   date: string;
   studentName: string;
@@ -80,6 +81,7 @@ export interface Visit {
 
 export interface ClassSession {
   id: string;
+  academyId: string;
   name: string;
   instructorId: string;
   instructorName: string;
@@ -92,6 +94,7 @@ export interface ClassSession {
 
 export interface Checkin {
   id: string;
+  academyId: string;
   studentId: string;
   classId: string;
   timestamp: string;
@@ -100,6 +103,7 @@ export interface Checkin {
 
 export interface Product {
   id: string;
+  academyId: string;
   name: string;
   description: string;
   price: number;
@@ -117,6 +121,7 @@ export interface OrderItem {
 
 export interface Order {
   id: string;
+  academyId: string;
   studentId: string;
   items: OrderItem[];
   status: OrderStatus;
@@ -126,6 +131,7 @@ export interface Order {
 
 export interface FinancialRecord {
   id: string;
+  academyId: string;
   studentId: string;
   referenceMonth: string; // e.g. "Maio/2026"
   amount: number;
@@ -136,6 +142,7 @@ export interface FinancialRecord {
 
 export interface CurriculumTechnique {
   id: string;
+  academyId: string;
   belt: Belt;
   category: string;
   name: string;
@@ -145,6 +152,7 @@ export interface CurriculumTechnique {
 
 export interface Announcement {
   id: string;
+  academyId: string;
   title: string;
   content: string;
   authorId: string;
@@ -158,6 +166,7 @@ export type AppointmentStatus = 'SCHEDULED' | 'COMPLETED' | 'CANCELLED';
 
 export interface Appointment {
   id: string;
+  academyId: string;
   type: AppointmentType;
   title: string;
   date: string;
@@ -179,6 +188,7 @@ export interface Appointment {
 
 export interface AcademyEvent {
   id: string;
+  academyId: string;
   title: string;
   type: EventType;
   date: string;
@@ -191,6 +201,7 @@ export interface AcademyEvent {
 
 export interface ClassLog {
   id: string;
+  academyId: string;
   dateStr: string; // "YYYY-MM-DD"
   classId: string;
   belt: Belt;

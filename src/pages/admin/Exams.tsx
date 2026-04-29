@@ -11,7 +11,9 @@ import { exportToCSV } from '../../lib/csv';
 
 export default function Exams() {
   const user = useAuthStore((state) => state.user);
-  const events = useDataStore((state) => state.events);
+  const allEvents = useDataStore((state) => state.events);
+  
+  const events = React.useMemo(() => allEvents.filter(e => e.academyId === user?.academyId), [allEvents, user]);
   const allStudents = useDataStore((state) => state.students);
   const updateEvent = useDataStore((state) => state.updateEvent);
   

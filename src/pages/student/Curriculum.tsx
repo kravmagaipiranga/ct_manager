@@ -9,7 +9,7 @@ export default function StudentCurriculum() {
   const user = useAuthStore((state) => state.user);
   const curriculumTexts = useDataStore((state) => state.curriculumTexts);
   const checkins = useDataStore((state) => state.checkins);
-  const classLogs = useDataStore((state) => state.classLogs);
+  const classLogs = useDataStore((state) => state.classLogs).filter(log => log.academyId === user?.academyId);
   
   if (!user || !user.beltLevel) return null;
 

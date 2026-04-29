@@ -11,8 +11,11 @@ import { toast } from 'sonner';
 
 export default function StoreAdmin() {
   const user = useAuthStore((state) => state.user);
-  const products = useDataStore((state) => state.products);
-  const allOrders = useDataStore((state) => state.orders);
+  const allProducts = useDataStore((state) => state.products);
+  const allOrdersStore = useDataStore((state) => state.orders);
+  
+  const products = React.useMemo(() => allProducts.filter(p => p.academyId === user?.academyId), [allProducts, user]);
+  const allOrders = React.useMemo(() => allOrdersStore.filter(o => o.academyId === user?.academyId), [allOrdersStore, user]);
   const students = useDataStore((state) => state.students);
   const updateOrderStatus = useDataStore((state) => state.updateOrderStatus);
 

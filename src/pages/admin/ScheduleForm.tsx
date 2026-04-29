@@ -8,7 +8,13 @@ import { BeltBadge } from '../../components/shared/BeltBadge';
 import { cn } from '../../lib/utils';
 import { toast } from 'sonner';
 
-const DAYS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+const VALID_DAYS = [
+  { label: 'Segunda', index: 1 },
+  { label: 'Terça', index: 2 },
+  { label: 'Quarta', index: 3 },
+  { label: 'Quinta', index: 4 },
+  { label: 'Sábado', index: 6 }
+];
 const BELTS: Belt[] = ['WHITE', 'YELLOW', 'ORANGE', 'GREEN', 'BLUE', 'BROWN', 'BLACK'];
 
 export default function ScheduleForm() {
@@ -23,7 +29,7 @@ export default function ScheduleForm() {
   const classes = useDataStore((state) => state.classes);
   const students = useDataStore((state) => state.students);
 
-  const instructorsList = students.filter(s => s.role === 'INSTRUCTOR');
+  const instructorsList = students.filter(s => s.role === 'INSTRUCTOR' && s.academyId === user?.academyId);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -70,6 +76,7 @@ export default function ScheduleForm() {
     }
 
     const basePayload = {
+      academyId: user?.academyId || '',
       name: formData.name,
       instructorId: formData.instructorId,
       instructorName: formData.instructorName,
@@ -200,7 +207,6 @@ export default function ScheduleForm() {
                   setFormData({...formData, instructorId: id, instructorName: inst ? inst.name : ''});
                 }} 
                 className="w-full bg-krav-bg text-sm border border-krav-border focus:border-krav-accent p-3 rounded-lg transition-colors outline-none font-medium text-krav-text"
-                disabled={user?.role === 'INSTRUCTOR'}
               >
                 <option value="">Selecione o Instrutor</option>
                 {instructorsList.map(inst => (
@@ -217,18 +223,18 @@ export default function ScheduleForm() {
             <div className="md:col-span-2 pt-4 border-t border-krav-border">
                <label className="block text-xs font-bold text-krav-text mb-3 uppercase tracking-wider">Dias da Semana</label>
                <div className="flex flex-wrap gap-2">
-                 {DAYS.map((day, i) => {
-                   const isSelected = formData.daysOfWeek.includes(i);
+                 {VALID_DAYS.map((day) => {
+                   const isSelected = formData.daysOfWeek.includes(day.index);
                    return (
                      <button
                        type="button"
-                       key={i}
+                       key={day.index}
                        onClick={() => {
                          const arr = [...formData.daysOfWeek];
                          if (isSelected) {
-                           setFormData({ ...formData, daysOfWeek: arr.filter(d => d !== i) });
+                           setFormData({ ...formData, daysOfWeek: arr.filter(d => d !== day.index) });
                          } else {
-                           setFormData({ ...formData, daysOfWeek: [...arr, i] });
+                           setFormData({ ...formData, daysOfWeek: [...arr, day.index] });
                          }
                        }}
                        className={cn(
@@ -236,7 +242,7 @@ export default function ScheduleForm() {
                          isSelected ? "bg-krav-accent text-white border-krav-accent" : "bg-krav-bg text-krav-text border-krav-border hover:border-krav-muted hover:bg-black/5"
                        )}
                      >
-                       {day}
+                       {day.label}
                      </button>
                    )
                  })}

@@ -19,7 +19,8 @@ import {
   Sun,
   X,
   MapPin,
-  Lock
+  Lock,
+  Briefcase
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -152,8 +153,8 @@ export default function StudentLayout() {
       {/* Top Header - Mobile friendly */}
       <header className="h-16 px-4 md:px-6 border-b border-krav-border flex items-center justify-between bg-krav-sidebar z-30 sticky top-0 transition-colors shadow-sm">
         <div className="flex items-center gap-3 md:hidden">
-          <div className="w-8 h-8 flex-shrink-0 bg-krav-accent rounded flex items-center justify-center font-bold text-lg text-white shadow-sm">
-            K
+          <div className="w-8 h-8 flex-shrink-0 bg-krav-accent rounded flex items-center justify-center font-bold text-lg text-white shadow-sm overflow-hidden">
+            <img src="https://yata-apix-c1ca31d6-cb5d-4e4c-94a2-7c6a7dc7c677.s3-object.locaweb.com.br/2eb38dd66b5b41d783090f2373d971f5.png" alt="Logo" className="w-full h-full object-cover" />
           </div>
           <div className="min-w-0">
              <h1 className="font-bold text-sm leading-tight truncate">Olá, {user?.name.split(' ')[0]}</h1>
@@ -163,8 +164,8 @@ export default function StudentLayout() {
 
         {/* Desktop Brand */}
         <div className="hidden md:flex items-center gap-3">
-          <div className="w-8 h-8 flex-shrink-0 bg-krav-accent rounded flex items-center justify-center font-bold text-lg text-white shadow-sm">
-            K
+          <div className="w-8 h-8 flex-shrink-0 bg-krav-accent rounded flex items-center justify-center font-bold text-lg text-white shadow-sm overflow-hidden">
+            <img src="https://yata-apix-c1ca31d6-cb5d-4e4c-94a2-7c6a7dc7c677.s3-object.locaweb.com.br/2eb38dd66b5b41d783090f2373d971f5.png" alt="Logo" className="w-full h-full object-cover" />
           </div>
           <div>
             <p className="font-bold text-sm tracking-wide">Área do Aluno</p>
@@ -175,19 +176,35 @@ export default function StudentLayout() {
         <div className="flex items-center gap-1 md:gap-3 relative" ref={notifRef}>
           <button 
             onClick={toggleTheme} 
-            className="w-10 h-10 flex items-center justify-center rounded-full text-krav-muted hover:text-krav-accent hover:bg-black/5 dark:hover:bg-krav-card/5 transition-colors"
+            className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full text-krav-muted hover:text-krav-accent hover:bg-black/5 dark:hover:bg-krav-card/5 transition-colors"
           >
-             {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+             {isDarkMode ? <Sun className="w-4 h-4 md:w-5 md:h-5" /> : <Moon className="w-4 h-4 md:w-5 md:h-5" />}
           </button>
           
           <button 
             onClick={() => setShowNotifications(!showNotifications)}
-            className="w-10 h-10 flex items-center justify-center rounded-full text-krav-muted hover:text-krav-text hover:bg-black/5 dark:hover:bg-krav-card/5 transition-colors relative"
+            className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full text-krav-muted hover:text-krav-text hover:bg-black/5 dark:hover:bg-krav-card/5 transition-colors relative"
           >
-             <Bell className="w-5 h-5" />
+             <Bell className="w-4 h-4 md:w-5 md:h-5" />
              {unreadCount > 0 && (
-               <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse border border-krav-sidebar" />
+               <span className="absolute top-1.5 md:top-2 right-1.5 md:right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse border border-krav-sidebar" />
              )}
+          </button>
+
+          {(user?.role === 'ADMIN' || user?.role === 'INSTRUCTOR') && (
+            <button
+              onClick={() => navigate('/admin/dashboard')}
+              className="w-8 h-8 flex md:hidden items-center justify-center rounded-full text-krav-muted hover:text-krav-text hover:bg-black/5 dark:hover:bg-krav-card/5 transition-colors bg-krav-card border border-krav-border ml-1"
+            >
+              <Briefcase className="w-4 h-4" />
+            </button>
+          )}
+
+          <button
+            onClick={handleLogout}
+            className="w-8 h-8 flex md:hidden items-center justify-center rounded-full text-red-500 hover:text-red-400 hover:bg-red-500/10 transition-colors bg-red-500/5 ml-1"
+          >
+            <LogOut className="w-4 h-4" />
           </button>
 
           {/* Notifications Dropdown */}
@@ -236,7 +253,25 @@ export default function StudentLayout() {
             ))}
           </nav>
           
-          <div className="px-5 mt-8 pt-6 border-t border-krav-border">
+          <div className="px-5 mt-8 pt-6 border-t border-krav-border flex flex-col gap-2">
+            {user?.role === 'INSTRUCTOR' && (
+              <button
+                onClick={() => navigate('/admin/dashboard')}
+                className="flex items-center gap-3 text-sm font-bold text-krav-muted hover:text-krav-text transition-colors w-full p-2 rounded-lg hover:bg-black/5 dark:hover:bg-krav-card/5"
+              >
+                <Briefcase className="w-4 h-4" />
+                Painel do Instrutor
+              </button>
+            )}
+            {user?.role === 'ADMIN' && (
+              <button
+                onClick={() => navigate('/admin/dashboard')}
+                className="flex items-center gap-3 text-sm font-bold text-krav-muted hover:text-krav-text transition-colors w-full p-2 rounded-lg hover:bg-black/5 dark:hover:bg-krav-card/5"
+              >
+                <Briefcase className="w-4 h-4" />
+                Painel do Admin
+              </button>
+            )}
             <button
               onClick={handleLogout}
               className="flex items-center gap-3 text-sm font-bold text-krav-muted hover:text-red-500 transition-colors w-full p-2 rounded-lg hover:bg-red-500/10"

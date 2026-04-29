@@ -7,17 +7,19 @@ import { cn } from '../../lib/utils';
 import { ClassSession, Belt } from '../../types';
 import { BeltBadge } from '../../components/shared/BeltBadge';
 
-const DAYS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-
 const ALL_BELTS: Belt[] = ['WHITE', 'YELLOW', 'ORANGE', 'GREEN', 'BLUE', 'BROWN', 'BLACK'];
 
 export default function Schedule() {
   const user = useAuthStore((state) => state.user);
   const allClasses = useDataStore((state) => state.classes);
   
-  const classes = user?.role === 'INSTRUCTOR' 
-    ? allClasses.filter(c => c.instructorId === user.id)
-    : allClasses;
+  const academyClasses = React.useMemo(() => {
+    return allClasses.filter(c => c.academyId === user?.academyId);
+  }, [allClasses, user]);
+
+  const classes = React.useMemo(() => {
+    return academyClasses;
+  }, [academyClasses]);
   
   const getClassesByDay = (dayIndex: number) => {
     return classes.filter(c => c.dayOfWeek === dayIndex).sort((a, b) => a.time.localeCompare(b.time));
@@ -33,6 +35,14 @@ export default function Schedule() {
     navigate('/admin/schedule/new');
   };
 
+  const VALID_DAYS = [
+    { label: 'Segunda', index: 1 },
+    { label: 'Terça', index: 2 },
+    { label: 'Quarta', index: 3 },
+    { label: 'Quinta', index: 4 },
+    { label: 'Sábado', index: 6 }
+  ];
+
   return (
     <div className="p-6 md:p-8 flex flex-col bg-krav-bg w-full h-full relative overflow-y-auto">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 shrink-0 z-10">
@@ -47,17 +57,17 @@ export default function Schedule() {
       </div>
 
       <div className="bg-krav-card border border-krav-border rounded-xl shadow-sm flex flex-col overflow-x-auto h-full min-h-[500px]">
-        <div className="w-full grid grid-cols-7 border-b border-krav-border bg-black/[0.02] min-w-[800px] shrink-0">
-          {DAYS.map((day, i) => (
-            <div key={day} className={cn("px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-krav-text border-krav-border", i !== 6 && "border-r")}>
-              {day}
+        <div className="w-full grid grid-cols-5 border-b border-krav-border bg-black/[0.02] min-w-[600px] shrink-0">
+          {VALID_DAYS.map((day, i) => (
+            <div key={day.index} className={cn("px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider text-krav-text border-krav-border", i !== 4 && "border-r")}>
+              {day.label}
             </div>
           ))}
         </div>
         
-        <div className="w-full grid grid-cols-7 min-w-[800px] flex-1">
-           {DAYS.map((_, dayIndex) => {
-             const dayClasses = getClassesByDay(dayIndex);
+        <div className="w-full grid grid-cols-5 min-w-[600px] flex-1">
+           {VALID_DAYS.map((day, i) => {
+             const dayClasses = getClassesByDay(day.index);
              
              // Group by time
              const grouped: Record<string, typeof dayClasses> = {};
@@ -67,7 +77,7 @@ export default function Schedule() {
              });
 
              return (
-               <div key={dayIndex} className={cn("p-2 border-krav-border flex flex-col gap-2 min-h-full", dayIndex !== 6 && "border-r")}>
+               <div key={day.index} className={cn("p-2 border-krav-border flex flex-col gap-2 min-h-full", i !== 4 && "border-r")}>
                  {Object.entries(grouped).map(([time, sessions]) => (
                    <div 
                      key={time} 

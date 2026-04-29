@@ -40,6 +40,7 @@ export default function AnnouncementForm() {
     // If edit is needed, we'd need to add updateAnnouncement to store. For now, assuming new.
     addAnnouncement({
        title: announcementForm.title,
+       academyId: user?.academyId || '',
        content: announcementForm.content,
        isPinned: announcementForm.isPinned,
        authorId: user?.id || 'admin_1',

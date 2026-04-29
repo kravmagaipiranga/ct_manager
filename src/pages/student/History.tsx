@@ -5,10 +5,11 @@ import { CheckCircle, Calendar, Medal } from 'lucide-react';
 export default function StudentHistory() {
   const user = useAuthStore((state) => state.user);
   const checkins = useDataStore((state) => state.checkins).filter(c => c.studentId === user?.id && c.status === 'APPROVED');
-  const classes = useDataStore((state) => state.classes);
+  const classes = useDataStore((state) => state.classes).filter(c => c.academyId === user?.academyId);
   
   // Find events where student might be involved (e.g. exams containing their ID, or generic past events for MVP)
   const events = useDataStore((state) => state.events).filter(e => {
+    if (e.academyId !== user?.academyId) return false;
     // If it's an exam, show if the student was allowed
     if (e.type === 'EXAM' && e.allowedStudentIds?.includes(user?.id || '')) return true;
     return false;

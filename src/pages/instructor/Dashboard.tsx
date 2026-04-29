@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useDataStore } from '../../store/useDataStore';
 import { BeltBadge } from '../../components/shared/BeltBadge';
-import { CheckSquare, Check, X, Users, Clock, Plus, Target, UserPlus, AlertTriangle } from 'lucide-react';
+import { CheckSquare, Check, X, Users, Clock, Plus, Target, UserPlus, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Belt } from '../../types';
 import BirthdayWidget from '../../components/widgets/BirthdayWidget';
@@ -87,9 +87,9 @@ export default function InstructorDashboard() {
     });
   }, [myStudents]);
 
-  // Find instructor's classes for today (already scoped to instructorId, but can add academyId check for safety)
+  // Find academy classes for today
   const todayClasses = classes.filter(
-    c => c.instructorId === user.id && c.dayOfWeek === new Date().getDay()
+    c => c.academyId === user.academyId && c.dayOfWeek === new Date().getDay()
   );
 
   // Find pending checkins for these classes (checkins only for this academy)
@@ -102,11 +102,18 @@ export default function InstructorDashboard() {
     })
     .filter(chk => chk.student && chk.session);
 
+  const handleApproveAll = () => {
+    if (window.confirm(`Tem certeza que deseja aprovar os ${pendingCheckins.length} check-ins pendentes?`)) {
+      pendingCheckins.forEach(c => approveCheckin(c.id));
+    }
+  };
+
   const handleAddVisit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!visitModal) return;
     addVisit({
       type: visitModal,
+      academyId: user?.academyId || '',
       studentName: visitForm.name,
       phone: visitForm.phone,
       date: new Date().toISOString(),
@@ -245,17 +252,39 @@ export default function InstructorDashboard() {
           </div>
 
           <div className="bg-krav-card border border-krav-border rounded-xl flex-col shadow-sm">
-            <div className="p-5 border-b border-krav-border flex items-center gap-3 shrink-0 bg-krav-bg/50">
-               <div className="w-8 h-8 rounded-full bg-krav-warning/10 flex items-center justify-center">
-                 <CheckSquare className="w-4 h-4 text-krav-warning" />
+            <div className="p-5 border-b border-krav-border flex items-center justify-between gap-3 shrink-0 bg-krav-bg/50">
+               <div className="flex items-center gap-3">
+                 <div className="w-8 h-8 rounded-full bg-krav-warning/10 flex items-center justify-center">
+                   <CheckSquare className="w-4 h-4 text-krav-warning" />
+                 </div>
+                 <div>
+                    <h2 className="text-sm font-bold text-krav-text">Fila de Liberação (Catraca)</h2>
+                    <p className="text-[11px] text-krav-muted">Check-ins pendentes ({pendingCheckins.length})</p>
+                 </div>
                </div>
-               <div>
-                  <h2 className="text-sm font-bold text-krav-text">Fila de Liberação (Catraca)</h2>
-                  <p className="text-[11px] text-krav-muted">Check-ins pendentes ({pendingCheckins.length})</p>
-               </div>
+               {pendingCheckins.length > 0 && (
+                 <button
+                   onClick={handleApproveAll}
+                   className="hidden sm:flex text-xs items-center gap-1.5 font-bold text-krav-success bg-krav-success/10 hover:bg-krav-success/20 px-3 py-1.5 rounded-lg transition-colors border border-krav-success/20"
+                 >
+                   <CheckCircle2 className="w-3.5 h-3.5" />
+                   Aprovar Todos
+                 </button>
+               )}
             </div>
 
             <div className="p-0">
+               {pendingCheckins.length > 0 && (
+                 <div className="sm:hidden p-4 border-b border-krav-border bg-krav-bg flex justify-end">
+                   <button
+                     onClick={handleApproveAll}
+                     className="w-full flex text-sm items-center justify-center gap-1.5 font-bold text-krav-success bg-krav-success/10 hover:bg-krav-success/20 px-3 py-2.5 rounded-lg transition-colors border border-krav-success/20"
+                   >
+                     <CheckCircle2 className="w-4 h-4" />
+                     Aprovar Todos
+                   </button>
+                 </div>
+               )}
                {pendingCheckins.length === 0 ? (
                  <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
                    <div className="w-12 h-12 bg-krav-bg border border-krav-border rounded-full flex items-center justify-center mb-3">

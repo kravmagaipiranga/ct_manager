@@ -122,7 +122,7 @@ export default function App() {
       )}
 
       {/* Student Routes */}
-      {isAuthenticated && user?.role === 'STUDENT' && (
+      {isAuthenticated && (user?.role === 'STUDENT' || user?.role === 'INSTRUCTOR' || user?.role === 'ADMIN') && (
         <Route path="/student" element={<StudentLayout />}>
           <Route path="home" element={<StudentHome />} />
           <Route path="schedule" element={<StudentSchedule />} />

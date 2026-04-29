@@ -8,9 +8,11 @@ import { cn } from '../../lib/utils';
 const BELTS: Belt[] = ['WHITE', 'YELLOW', 'ORANGE', 'GREEN', 'BLUE', 'BROWN', 'BLACK'];
 
 export default function Curriculum() {
+  const user = useAuthStore((state) => state.user);
   const curriculumTexts = useDataStore((state) => state.curriculumTexts);
   const updateCurriculumText = useDataStore((state) => state.updateCurriculumText);
-  const classes = useDataStore((state) => state.classes);
+  const allClasses = useDataStore((state) => state.classes);
+  const classes = React.useMemo(() => allClasses.filter(c => c.academyId === user?.academyId), [allClasses, user]);
   const addClassLog = useDataStore((state) => state.addClassLog);
   const classLogs = useDataStore((state) => state.classLogs);
   
@@ -55,6 +57,8 @@ export default function Curriculum() {
   const handleSaveLog = () => {
     if (!logClassId) return;
     addClassLog({
+      id: Math.random().toString(36).substr(2, 9),
+      academyId: user?.academyId || '',
       dateStr: logDate,
       classId: logClassId,
       belt: activeBelt,

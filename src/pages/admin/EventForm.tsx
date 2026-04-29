@@ -48,6 +48,7 @@ export default function EventForm() {
     } else {
       addEvent({
         id: Math.random().toString(36).substr(2, 9),
+        academyId: user?.academyId || '',
         ...eventForm,
         type: eventForm.type as 'SEMINAR' | 'EXAM',
         price: eventForm.price > 0 ? eventForm.price : undefined,

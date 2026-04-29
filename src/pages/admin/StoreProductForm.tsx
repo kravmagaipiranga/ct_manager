@@ -56,6 +56,7 @@ export default function StoreProductForm() {
     } else {
       addProduct({
          id: Math.random().toString(36).substr(2, 9),
+         academyId: user?.academyId || '',
          ...saveData
       });
       toast.success('Produto cadastrado com sucesso!');

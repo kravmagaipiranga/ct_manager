@@ -16,8 +16,8 @@ export default function StudentHome() {
   // Derive today's classes
   const todayClasses = useMemo(() => {
     const defaultDay = new Date().getDay();
-    return classes.filter(c => c.dayOfWeek === defaultDay).sort((a, b) => a.time.localeCompare(b.time));
-  }, [classes]);
+    return classes.filter(c => c.dayOfWeek === defaultDay && c.academyId === user?.academyId).sort((a, b) => a.time.localeCompare(b.time));
+  }, [classes, user]);
 
   // Derive checkin status for today
   const getCheckinForClass = (classId: string) => {

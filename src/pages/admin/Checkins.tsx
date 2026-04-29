@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useDataStore } from '../../store/useDataStore';
 import { useAuthStore } from '../../store/useAuthStore';
-import { CheckSquare, Check as CheckIcon, X, History, Download } from 'lucide-react';
+import { CheckSquare, Check as CheckIcon, X, History, Download, Trash2, CheckCircle2 } from 'lucide-react';
 import { ContactActions } from '../../components/shared/ContactActions';
 import { CheckinStatus } from '../../types';
 import { exportToCSV } from '../../lib/csv';
@@ -13,6 +13,7 @@ export default function Checkins() {
   const students = useDataStore((state) => state.students);
   const approveCheckin = useDataStore((state) => state.approveCheckin);
   const rejectCheckin = useDataStore((state) => state.rejectCheckin);
+  const deleteCheckin = useDataStore((state) => state.deleteCheckin);
 
   const [activeTab, setActiveTab] = useState<'PENDING' | 'HISTORY'>('PENDING');
 
@@ -46,6 +47,12 @@ export default function Checkins() {
   const pendingCheckins = formattedCheckins.filter(c => c.status === 'PENDING');
   const historyCheckins = formattedCheckins.filter(c => c.status !== 'PENDING');
 
+  const handleApproveAll = () => {
+    if (window.confirm(`Tem certeza que deseja aprovar os ${pendingCheckins.length} check-ins pendentes?`)) {
+      pendingCheckins.forEach(c => approveCheckin(c.id));
+    }
+  };
+
   const handleExport = () => {
     exportToCSV(
       activeTab === 'PENDING' ? pendingCheckins : historyCheckins,
@@ -76,30 +83,52 @@ export default function Checkins() {
         </button>
       </div>
 
-      <div className="flex gap-4 border-b border-krav-border mb-6 shrink-0">
-        <button 
-          onClick={() => setActiveTab('PENDING')}
-          className={`pb-3 px-2 text-sm font-semibold transition-colors duration-200 border-b-2 flex items-center gap-2 ${
-            activeTab === 'PENDING' ? 'border-krav-accent text-krav-accent' : 'border-transparent text-krav-muted hover:text-krav-text'
-          }`}
-        >
-          <CheckSquare className="w-4 h-4" />
-          Aguardando ({pendingCheckins.length})
-        </button>
-        <button 
-          onClick={() => setActiveTab('HISTORY')}
-          className={`pb-3 px-2 text-sm font-semibold transition-colors duration-200 border-b-2 flex items-center gap-2 ${
-            activeTab === 'HISTORY' ? 'border-krav-accent text-krav-accent' : 'border-transparent text-krav-muted hover:text-krav-text'
-          }`}
-        >
-          <History className="w-4 h-4" />
-          Histórico
-        </button>
+      <div className="flex gap-4 border-b border-krav-border mb-6 shrink-0 justify-between items-center w-full">
+        <div className="flex gap-4">
+          <button 
+            onClick={() => setActiveTab('PENDING')}
+            className={`pb-3 px-2 text-sm font-semibold transition-colors duration-200 border-b-2 flex items-center gap-2 ${
+              activeTab === 'PENDING' ? 'border-krav-accent text-krav-accent' : 'border-transparent text-krav-muted hover:text-krav-text'
+            }`}
+          >
+            <CheckSquare className="w-4 h-4" />
+            Aguardando ({pendingCheckins.length})
+          </button>
+          <button 
+            onClick={() => setActiveTab('HISTORY')}
+            className={`pb-3 px-2 text-sm font-semibold transition-colors duration-200 border-b-2 flex items-center gap-2 ${
+              activeTab === 'HISTORY' ? 'border-krav-accent text-krav-accent' : 'border-transparent text-krav-muted hover:text-krav-text'
+            }`}
+          >
+            <History className="w-4 h-4" />
+            Histórico
+          </button>
+        </div>
+        {activeTab === 'PENDING' && pendingCheckins.length > 0 && (
+          <button
+            onClick={handleApproveAll}
+            className="hidden sm:flex text-sm items-center gap-1.5 font-semibold text-krav-success bg-krav-success/10 hover:bg-krav-success/20 px-3 py-1.5 rounded-lg transition-colors border border-krav-success/20"
+          >
+            <CheckCircle2 className="w-4 h-4" />
+            Aprovar Todos
+          </button>
+        )}
       </div>
 
       <div className="w-full">
         {activeTab === 'PENDING' && (
           <div className="space-y-4 max-w-3xl">
+            {pendingCheckins.length > 0 && (
+              <div className="sm:hidden mb-4">
+                <button
+                  onClick={handleApproveAll}
+                  className="w-full flex text-sm items-center justify-center gap-1.5 font-semibold text-krav-success bg-krav-success/10 hover:bg-krav-success/20 px-3 py-2.5 rounded-lg transition-colors border border-krav-success/20"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  Aprovar Todos
+                </button>
+              </div>
+            )}
             {pendingCheckins.length === 0 ? (
               <div className="p-8 text-center text-krav-muted border border-dashed border-krav-border rounded-xl">
                 Nenhum check-in pendente no momento.
@@ -138,7 +167,7 @@ export default function Checkins() {
                    <h3 className="font-semibold text-krav-text">{checkin.studentName}</h3>
                    <p className="text-xs text-krav-muted mt-0.5">{checkin.className} • {checkin.date}</p>
                  </div>
-                 <div>
+                 <div className="flex items-center gap-3">
                    {checkin.status === 'APPROVED' ? (
                      <span className="text-xs font-bold text-krav-success bg-krav-success/10 px-3 py-1.5 rounded-full inline-flex items-center gap-1.5 border border-krav-success/20">
                        <CheckIcon className="w-3.5 h-3.5" /> Aprovado
@@ -148,6 +177,17 @@ export default function Checkins() {
                        <X className="w-3.5 h-3.5" /> Rejeitado
                      </span>
                    )}
+                   <button
+                     onClick={() => {
+                       if (window.confirm('Tem certeza que deseja remover este check-in?')) {
+                         deleteCheckin(checkin.id);
+                       }
+                     }}
+                     className="p-1.5 text-krav-muted hover:text-krav-danger bg-krav-card border border-transparent hover:border-krav-danger hover:bg-krav-danger/10 rounded-md transition-colors"
+                     title="Remover check-in"
+                   >
+                     <Trash2 className="w-4 h-4" />
+                   </button>
                  </div>
               </div>
             ))}

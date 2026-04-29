@@ -21,6 +21,7 @@ export interface DataState {
   requestCheckin: (studentId: string, classId: string) => void;
   approveCheckin: (checkinId: string) => void;
   rejectCheckin: (checkinId: string) => void;
+  deleteCheckin: (checkinId: string) => void;
   
   // update existing actions
   addStudent: (student: Omit<User, 'id' | 'createdAt'>) => void;
@@ -136,7 +137,7 @@ export const useDataStore = create<DataState>((set, get) => ({
       whatsapp: '11999990001',
       email: 'kravmagaipiranga@gmail.com',
       website: '',
-      logoUrl: '',
+      logoUrl: 'https://yata-apix-c1ca31d6-cb5d-4e4c-94a2-7c6a7dc7c677.s3-object.locaweb.com.br/2eb38dd66b5b41d783090f2373d971f5.png',
       whatsappMessages: {
         birthday: 'Parabéns {nome}, felicidades da equipe Ipiranga!',
         inactive: 'Sentimos sua falta no Ipiranga, {nome}!'
@@ -152,7 +153,7 @@ export const useDataStore = create<DataState>((set, get) => ({
       whatsapp: '11999990002',
       email: 'celso@kravmaga.org.br',
       website: '',
-      logoUrl: '',
+      logoUrl: 'https://yata-apix-c1ca31d6-cb5d-4e4c-94a2-7c6a7dc7c677.s3-object.locaweb.com.br/2eb38dd66b5b41d783090f2373d971f5.png',
       whatsappMessages: {
         birthday: 'Parabéns {nome}, felicidades da equipe Santo Amaro!',
         inactive: 'Sentimos sua falta em Santo Amaro, {nome}!'
@@ -230,8 +231,10 @@ export const useDataStore = create<DataState>((set, get) => ({
   }),
 
   requestCheckin: (studentId, classId) => set((state) => {
+    const student = state.students.find(s => s.id === studentId);
     const chk = {
       id: Math.random().toString(36).substr(2, 9),
+      academyId: student?.academyId || '',
       studentId,
       classId,
       timestamp: new Date().toISOString(),
@@ -250,9 +253,14 @@ export const useDataStore = create<DataState>((set, get) => ({
     if(checkin) appendToFirestore('checkins', { ...checkin, status: 'REJECTED' });
     return { checkins: state.checkins.map(chk => chk.id === checkinId ? { ...chk, status: 'REJECTED' } : chk) };
   }),
+  deleteCheckin: (checkinId) => set((state) => {
+    // We would really delete from firestore here, but for MVP local state works.
+    // If using firestore, we'd need a deleteFromFirestore helper. 
+    return { checkins: state.checkins.filter(chk => chk.id !== checkinId) };
+  }),
 
   addProduct: (product) => set((state) => {
-    const p = { ...product, id: Math.random().toString(36).substr(2, 9) };
+    const p = { ...product, id: product.id || Math.random().toString(36).substr(2, 9) };
     appendToFirestore('products', p);
     return { products: [p, ...state.products] };
   }),
@@ -277,8 +285,11 @@ export const useDataStore = create<DataState>((set, get) => ({
       return { productId: item.productId, quantity: item.quantity, unitPrice: price, variation: item.variation };
     });
 
+    const student = state.students.find(s => s.id === studentId);
+
     const order = {
       id: Math.random().toString(36).substr(2, 9),
+      academyId: student?.academyId || '',
       studentId,
       items,
       total,

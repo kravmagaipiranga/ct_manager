@@ -24,9 +24,12 @@ export default function ExamStudentsForm() {
     return null;
   }
 
-  const students = user?.role === 'INSTRUCTOR' 
-    ? allStudents.filter(s => s.instructorId === user.id)
-    : allStudents;
+  const students = React.useMemo(() => {
+    const actStudents = allStudents.filter(s => s.academyId === user?.academyId);
+    return user?.role === 'INSTRUCTOR' 
+      ? actStudents.filter(s => s.instructorId === user.id)
+      : actStudents;
+  }, [allStudents, user]);
 
   const filteredStudents = students.filter(s => 
      s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 

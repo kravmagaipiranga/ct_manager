@@ -8,9 +8,12 @@ import { AcademyEvent, Announcement } from '../../types';
 import { exportToCSV } from '../../lib/csv';
 
 export default function Announcements() {
-  const announcements = useDataStore((state) => state.announcements);
-  const events = useDataStore((state) => state.events);
+  const allAnnouncements = useDataStore((state) => state.announcements);
+  const allEvents = useDataStore((state) => state.events);
   const user = useAuthStore((state) => state.user);
+  
+  const announcements = React.useMemo(() => allAnnouncements.filter(a => a.academyId === user?.academyId), [allAnnouncements, user]);
+  const events = React.useMemo(() => allEvents.filter(e => e.academyId === user?.academyId), [allEvents, user]);
   
   const addAnnouncement = useDataStore((state) => state.addAnnouncement);
   const addEvent = useDataStore((state) => state.addEvent);

@@ -9,11 +9,12 @@ import { exportToCSV } from '../../lib/csv';
 
 export default function Appointments() {
   const authUser = useAuthStore(state => state.user);
-  const allAppointments = useDataStore(state => state.appointments);
+  const allAppointmentsStore = useDataStore(state => state.appointments);
+  const allAppointments = React.useMemo(() => allAppointmentsStore.filter(a => a.academyId === authUser?.academyId), [allAppointmentsStore, authUser]);
   const students = useDataStore(state => state.students);
   const addAppointment = useDataStore(state => state.addAppointment);
   const updateAppointmentStatus = useDataStore(state => state.updateAppointmentStatus);
-  const user = useDataStore(state => state.students.find(s => s.id === authUser?.id) || state.students.find(s => s.role === 'ADMIN'));
+  const user = useDataStore(state => state.students.find(s => s.id === authUser?.id) || state.students.find(s => s.role === 'ADMIN' && s.academyId === authUser?.academyId));
 
   const appointments = useMemo(() => {
     if (authUser?.role === 'INSTRUCTOR') {
@@ -47,6 +48,7 @@ export default function Appointments() {
     
     addAppointment({
       type: formData.type,
+      academyId: authUser?.academyId || '',
       title: formData.title,
       date: datetime,
       durationMinutes: formData.durationMinutes,

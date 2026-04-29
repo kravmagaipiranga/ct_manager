@@ -1,13 +1,15 @@
 import React, { useMemo } from 'react';
+import { useAuthStore } from '../../store/useAuthStore';
 import { useDataStore } from '../../store/useDataStore';
 import { Clock, Users, Calendar } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { BeltBadge } from '../../components/shared/BeltBadge';
 
-const DAYS = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+const DAYS = ['', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', '', 'Sábado'];
 
 export default function StudentSchedule() {
-  const classes = useDataStore((state) => state.classes);
+  const user = useAuthStore((state) => state.user);
+  const classes = useDataStore((state) => state.classes).filter(c => c.academyId === user?.academyId);
 
   const getClassesByDay = (dayIndex: number) => {
     return classes.filter(c => c.dayOfWeek === dayIndex).sort((a, b) => a.time.localeCompare(b.time));
@@ -15,8 +17,8 @@ export default function StudentSchedule() {
 
   const todayIndex = new Date().getDay();
 
-  // Always show Monday to Saturday (1 to 6)
-  const sortedDays = [1, 2, 3, 4, 5, 6];
+  // Always show Monday to Thursday, and Saturday (1 to 4, 6)
+  const sortedDays = [1, 2, 3, 4, 6];
 
   return (
     <div className="p-4 sm:p-6 md:p-8 flex flex-col max-w-xl mx-auto w-full">

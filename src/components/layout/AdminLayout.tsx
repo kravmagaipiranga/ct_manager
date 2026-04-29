@@ -20,7 +20,8 @@ import {
   BarChart3,
   Moon,
   Sun,
-  Bell
+  Bell,
+  User as UserIcon
 } from 'lucide-react';
 
 const ALL_NAV_ITEMS = [
@@ -199,7 +200,16 @@ export default function AdminLayout() {
             ))}
           </nav>
           
-          <div className="px-5 mt-6 pt-6 border-t border-krav-border">
+          <div className="px-5 mt-6 pt-6 border-t border-krav-border flex flex-col gap-2">
+            {(user?.role === 'INSTRUCTOR' || user?.role === 'ADMIN') && (
+              <button
+                onClick={() => navigate('/student/home')}
+                className="flex items-center gap-3 text-sm font-bold text-krav-muted hover:text-krav-text transition-colors w-full p-2 rounded-lg hover:bg-black/5 dark:hover:bg-krav-card/5"
+              >
+                <UserIcon className="w-5 h-5 shrink-0" />
+                Área do Aluno
+              </button>
+            )}
             <button
               onClick={handleLogout}
               className="flex items-center gap-3 text-sm font-bold text-krav-muted hover:text-red-500 transition-colors w-full p-2 rounded-lg hover:bg-red-500/10"
@@ -233,10 +243,22 @@ export default function AdminLayout() {
                 </NavLink>
               ))}
 
-              <div className="mt-8 pt-8 border-t border-krav-border px-6">
+              <div className="mt-8 pt-8 border-t border-krav-border px-6 flex flex-col gap-2">
+                {(user?.role === 'INSTRUCTOR' || user?.role === 'ADMIN') && (
+                  <button
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      navigate('/student/home');
+                    }}
+                    className="flex items-center gap-4 text-sm sm:text-base font-bold text-krav-muted hover:text-krav-text transition-colors w-full p-2 rounded-lg"
+                  >
+                    <UserIcon className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
+                    Área do Aluno
+                  </button>
+                )}
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-4 text-sm sm:text-base font-bold text-krav-muted hover:text-red-500 transition-colors w-full"
+                  className="flex items-center gap-4 text-sm sm:text-base font-bold text-krav-muted hover:text-red-500 transition-colors w-full p-2 rounded-lg"
                 >
                   <LogOut className="w-5 h-5 sm:w-6 sm:h-6 shrink-0" />
                   Sair do Sistema

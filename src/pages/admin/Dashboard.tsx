@@ -3,7 +3,7 @@ import { cn } from '../../lib/utils';
 import BirthdayWidget from '../../components/widgets/BirthdayWidget';
 import { useDataStore } from '../../store/useDataStore';
 import { useAuthStore } from '../../store/useAuthStore';
-import { CheckCircle, XCircle } from 'lucide-react';
+import { CheckCircle, XCircle, CheckCircle2 } from 'lucide-react';
 
 export default function Dashboard() {
   const user = useAuthStore((state) => state.user);
@@ -120,9 +120,37 @@ export default function Dashboard() {
             Aprovar Check-ins
             {pendingCheckins.length > 0 && <span className="bg-krav-accent text-white px-2 py-0.5 rounded-full text-[10px]">{pendingCheckins.length}</span>}
           </h2>
+          {pendingCheckins.length > 0 && (
+            <button
+              onClick={() => {
+                if (window.confirm(`Tem certeza que deseja aprovar os ${pendingCheckins.length} check-ins pendentes?`)) {
+                  pendingCheckins.forEach(c => approveCheckin(c.id));
+                }
+              }}
+              className="text-xs items-center gap-1.5 font-bold text-krav-success bg-krav-success/10 hover:bg-krav-success/20 px-3 py-1.5 rounded-lg transition-colors border border-krav-success/20 hidden sm:flex"
+            >
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              Aprovar Todos
+            </button>
+          )}
         </div>
 
         <div className="flex-1 p-0">
+          {pendingCheckins.length > 0 && (
+             <div className="sm:hidden p-4 border-b border-krav-border bg-krav-bg">
+               <button
+                 onClick={() => {
+                   if (window.confirm(`Tem certeza que deseja aprovar os ${pendingCheckins.length} check-ins pendentes?`)) {
+                     pendingCheckins.forEach(c => approveCheckin(c.id));
+                   }
+                 }}
+                 className="w-full flex text-sm items-center justify-center gap-1.5 font-bold text-krav-success bg-krav-success/10 hover:bg-krav-success/20 px-3 py-2.5 rounded-lg transition-colors border border-krav-success/20"
+               >
+                 <CheckCircle2 className="w-4 h-4" />
+                 Aprovar Todos
+               </button>
+             </div>
+          )}
           {pendingCheckins.length > 0 ? (
             pendingCheckins.map(c => {
               const student = students.find(s => s.id === c.studentId);
