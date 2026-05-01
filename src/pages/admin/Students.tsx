@@ -42,12 +42,13 @@ export default function Students() {
 
   const filteredStudents = useMemo(() => {
     return students.filter(student => {
+      const isCorrectAcademyAndRole = student.academyId === user?.academyId && student.role === 'STUDENT';
       const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                             student.email.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesBelt = beltFilter === 'ALL' || student.beltLevel === beltFilter;
-      return matchesSearch && matchesBelt;
+      return isCorrectAcademyAndRole && matchesSearch && matchesBelt;
     });
-  }, [students, searchTerm, beltFilter]);
+  }, [students, searchTerm, beltFilter, user?.academyId]);
 
   const paginatedStudents = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
