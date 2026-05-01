@@ -48,9 +48,7 @@ export default function Checkins() {
   const historyCheckins = formattedCheckins.filter(c => c.status !== 'PENDING');
 
   const handleApproveAll = () => {
-    if (window.confirm(`Tem certeza que deseja aprovar os ${pendingCheckins.length} check-ins pendentes?`)) {
-      pendingCheckins.forEach(c => approveCheckin(c.id));
-    }
+    pendingCheckins.forEach(c => approveCheckin(c.id));
   };
 
   const handleExport = () => {
@@ -179,9 +177,7 @@ export default function Checkins() {
                    )}
                    <button
                      onClick={() => {
-                       if (window.confirm('Tem certeza que deseja remover este check-in?')) {
-                         deleteCheckin(checkin.id);
-                       }
+                       deleteCheckin(checkin.id);
                      }}
                      className="p-1.5 text-krav-muted hover:text-krav-danger bg-krav-card border border-transparent hover:border-krav-danger hover:bg-krav-danger/10 rounded-md transition-colors"
                      title="Remover check-in"

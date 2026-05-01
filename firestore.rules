@@ -27,7 +27,8 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn(); // In a real app, strict checks required 
-      allow update: if isSignedIn(); // Allow profile edits
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn(); // Allow profile edits
       // Notice: NO DELETE PERMISSION
     }
 
@@ -35,72 +36,84 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow create: if isSignedIn();
       allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
     match /checkins/{checkinId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn();
       allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
     match /products/{productId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn();
       allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
     match /orders/{orderId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn();
       allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
     match /financials/{recordId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn();
       allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
     match /events/{eventId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn();
       allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
     match /announcements/{announcementId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn();
       allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
     match /appointments/{appointmentId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn();
       allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
     match /classLogs/{logId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn();
       allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
     match /visits/{visitId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn();
       allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
     match /academiesSettings/{settingId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn();
       allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
     match /globals/{globalId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn();
       allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
   }
 }

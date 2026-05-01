@@ -14,8 +14,8 @@ export default function StoreAdmin() {
   const allProducts = useDataStore((state) => state.products);
   const allOrdersStore = useDataStore((state) => state.orders);
   
-  const products = React.useMemo(() => allProducts.filter(p => p.academyId === user?.academyId), [allProducts, user]);
-  const allOrders = React.useMemo(() => allOrdersStore.filter(o => o.academyId === user?.academyId), [allOrdersStore, user]);
+  const products = React.useMemo(() => allProducts.filter(p => p.academyId === user?.academyId || !p.academyId), [allProducts, user]);
+  const allOrders = React.useMemo(() => allOrdersStore.filter(o => o.academyId === user?.academyId || !o.academyId), [allOrdersStore, user]);
   const students = useDataStore((state) => state.students);
   const updateOrderStatus = useDataStore((state) => state.updateOrderStatus);
 

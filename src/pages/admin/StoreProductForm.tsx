@@ -65,10 +65,8 @@ export default function StoreProductForm() {
   };
 
   const handleDelete = () => {
-    if (window.confirm('Tem certeza que deseja excluir este produto?')) {
-      deleteProduct(id!);
-      navigate('/admin/store');
-    }
+    deleteProduct(id!);
+    navigate('/admin/store');
   };
 
   return (

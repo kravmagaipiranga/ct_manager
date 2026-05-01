@@ -123,9 +123,7 @@ export default function Dashboard() {
           {pendingCheckins.length > 0 && (
             <button
               onClick={() => {
-                if (window.confirm(`Tem certeza que deseja aprovar os ${pendingCheckins.length} check-ins pendentes?`)) {
-                  pendingCheckins.forEach(c => approveCheckin(c.id));
-                }
+                pendingCheckins.forEach(c => approveCheckin(c.id));
               }}
               className="text-xs items-center gap-1.5 font-bold text-krav-success bg-krav-success/10 hover:bg-krav-success/20 px-3 py-1.5 rounded-lg transition-colors border border-krav-success/20 hidden sm:flex"
             >
@@ -140,9 +138,7 @@ export default function Dashboard() {
              <div className="sm:hidden p-4 border-b border-krav-border bg-krav-bg">
                <button
                  onClick={() => {
-                   if (window.confirm(`Tem certeza que deseja aprovar os ${pendingCheckins.length} check-ins pendentes?`)) {
-                     pendingCheckins.forEach(c => approveCheckin(c.id));
-                   }
+                   pendingCheckins.forEach(c => approveCheckin(c.id));
                  }}
                  className="w-full flex text-sm items-center justify-center gap-1.5 font-bold text-krav-success bg-krav-success/10 hover:bg-krav-success/20 px-3 py-2.5 rounded-lg transition-colors border border-krav-success/20"
                >

@@ -12,8 +12,8 @@ export default function Announcements() {
   const allEvents = useDataStore((state) => state.events);
   const user = useAuthStore((state) => state.user);
   
-  const announcements = React.useMemo(() => allAnnouncements.filter(a => a.academyId === user?.academyId), [allAnnouncements, user]);
-  const events = React.useMemo(() => allEvents.filter(e => e.academyId === user?.academyId), [allEvents, user]);
+  const announcements = React.useMemo(() => allAnnouncements.filter(a => a.academyId === user?.academyId || !a.academyId), [allAnnouncements, user]);
+  const events = React.useMemo(() => allEvents.filter(e => e.academyId === user?.academyId || !e.academyId), [allEvents, user]);
   
   const addAnnouncement = useDataStore((state) => state.addAnnouncement);
   const addEvent = useDataStore((state) => state.addEvent);
@@ -36,9 +36,11 @@ export default function Announcements() {
   const paginatedEvents = events.slice((eventsPage - 1) * ITEMS_PER_PAGE, eventsPage * ITEMS_PER_PAGE);
   const eventsTotalPages = Math.ceil(events.length / ITEMS_PER_PAGE);
 
+  const deleteAnnouncement = useDataStore((state) => state.deleteAnnouncement);
+
   const openForm = (editId?: string) => {
     if (activeTab === 'Avisos') {
-      if (editId) navigate(`/admin/announcements/new`); // We don't have updateAnnouncement right now, so we only handle creation
+      if (editId) navigate(`/admin/announcements/${editId}`);
       else navigate(`/admin/announcements/new`);
     } else {
       if (editId) navigate(`/admin/events/${editId}`);
@@ -47,10 +49,15 @@ export default function Announcements() {
   };
 
   const handleDeleteEvent = (id: string, e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
-    if (confirm("Tem certeza que deseja excluir?")) {
-      deleteEvent(id);
-    }
+    deleteEvent(id);
+  };
+
+  const handleDeleteAnnouncement = (id: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    deleteAnnouncement(id);
   };
 
   const handleExport = () => {
@@ -134,7 +141,7 @@ export default function Announcements() {
               <div className="flex flex-col h-full">
                 <div className="flex-1 space-y-4 pb-4">
                   {paginatedAnnouncements.map((item) => (
-                    <div key={item.id} className={`p-5 rounded-xl border flex gap-4 ${item.isPinned ? 'bg-krav-accent/5 border-krav-accent/30' : 'bg-krav-card hover:bg-black/[0.01] border-krav-border'}`}>
+                    <div key={item.id} className={`p-5 rounded-xl border flex gap-4 cursor-pointer group hover:border-krav-accent transition-colors ${item.isPinned ? 'bg-krav-accent/5 border-krav-accent/30' : 'bg-krav-card hover:bg-black/[0.01] border-krav-border'}`} onClick={() => openForm(item.id)}>
                       <div className="shrink-0 mt-1">
                         {item.isPinned ? (
                           <div className="w-8 h-8 rounded-full bg-krav-accent/20 flex items-center justify-center text-krav-accent">
@@ -154,11 +161,19 @@ export default function Announcements() {
                           </span>
                         </div>
                         <p className="text-sm text-krav-muted leading-relaxed mb-3 whitespace-pre-wrap">{item.content}</p>
-                        <div className="flex items-center gap-2">
-                           <div className="w-5 h-5 rounded-full bg-black/10 flex items-center justify-center text-[10px] font-bold text-krav-text">
-                             {(item.authorName || 'A')[0]}
-                           </div>
-                           <span className="text-[11px] font-medium text-krav-muted">{item.authorName || 'Admin'}</span>
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-2">
+                             <div className="w-5 h-5 rounded-full bg-black/10 flex items-center justify-center text-[10px] font-bold text-krav-text">
+                               {(item.authorName || 'A')[0]}
+                             </div>
+                             <span className="text-[11px] font-medium text-krav-muted">{item.authorName || 'Admin'}</span>
+                          </div>
+                          
+                          <div className="flex gap-2">
+                             <button onClick={(e) => handleDeleteAnnouncement(item.id, e)} className="p-1.5 text-krav-muted hover:text-krav-danger rounded hover:bg-krav-danger/10 opacity-0 group-hover:opacity-100 transition-all bg-krav-bg border border-transparent hover:border-krav-danger/20">
+                                <Trash2 className="w-4 h-4" />
+                             </button>
+                          </div>
                         </div>
                       </div>
                     </div>

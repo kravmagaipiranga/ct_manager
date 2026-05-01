@@ -69,10 +69,8 @@ export default function FinancialForm() {
   };
 
   const handleDelete = () => {
-    if (window.confirm('Tem certeza que deseja excluir este registro financeiro?')) {
-      deleteFinancial(id!);
-      navigate('/admin/financial');
-    }
+    deleteFinancial(id!);
+    navigate('/admin/financial');
   };
 
   return (

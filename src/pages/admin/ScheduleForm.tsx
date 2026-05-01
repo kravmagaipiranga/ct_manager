@@ -66,11 +66,11 @@ export default function ScheduleForm() {
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.daysOfWeek.length === 0) {
-      alert("Selecione ao menos um dia da semana.");
+      toast.error("Selecione ao menos um dia da semana.");
       return;
     }
     if (formData.times.length === 0) {
-      alert("Adicione ao menos um horário.");
+      toast.error("Adicione ao menos um horário.");
       return;
     }
 
@@ -124,11 +124,11 @@ export default function ScheduleForm() {
   };
 
   const handleDelete = () => {
-    if (window.confirm('Tem certeza que deseja excluir esta aula?')) {
+    
       deleteClass(id!);
       toast.success('Aula excluída.');
       navigate('/admin/schedule');
-    }
+    
   };
 
   const internalBelts = formData.allowedBelts || [];
@@ -139,7 +139,7 @@ export default function ScheduleForm() {
         setFormData({ ...formData, allowedBelts: internalBelts.filter(b => b !== belt) });
      } else {
         if (internalBelts.length + internalMod.length >= 5) {
-           alert("Máximo de 5 tags permitidas (Faixas + Modalidades).");
+           toast.error("Máximo de 5 tags permitidas (Faixas + Modalidades).");
            return;
         }
         setFormData({ ...formData, allowedBelts: [...internalBelts, belt] });
@@ -152,7 +152,7 @@ export default function ScheduleForm() {
         const val = e.currentTarget.value.trim();
         if (val) {
            if (internalBelts.length + internalMod.length >= 5) {
-               alert("Máximo de 5 tags permitidas (Faixas + Modalidades).");
+               toast.error("Máximo de 5 tags permitidas (Faixas + Modalidades).");
                return;
            }
            setFormData({

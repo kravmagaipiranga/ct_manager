@@ -66,10 +66,8 @@ export default function StudentForm() {
   };
 
   const handleDelete = () => {
-    if (window.confirm('Tem certeza que deseja excluir este aluno?')) {
-      deleteStudent(id!);
-      navigate('/admin/students');
-    }
+    deleteStudent(id!);
+    navigate('/admin/students');
   };
 
   return (

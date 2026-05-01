@@ -1,10 +1,12 @@
+import { toast } from 'sonner';
+
 export function exportToCSV<T>(
   data: T[], 
   columns: { header: string; key: keyof T | ((item: T) => string | number) }[], 
   filename: string
 ) {
   if (!data || data.length === 0) {
-    alert("Não há dados para exportar.");
+    toast.error("Não há dados para exportar.");
     return;
   }
 

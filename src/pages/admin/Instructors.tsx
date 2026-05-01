@@ -99,10 +99,8 @@ export default function Instructors() {
 
   const handleDelete = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (confirm('Tem certeza que deseja excluir este instrutor? Esta ação não pode ser desfeita.')) {
-      deleteStudent(id);
-      toast.success('Instrutor removido com sucesso!');
-    }
+    deleteStudent(id);
+    toast.success('Instrutor removido com sucesso!');
   };
 
   return (
@@ -114,7 +112,7 @@ export default function Instructors() {
         </div>
         <div className="flex gap-2">
           <button 
-            onClick={() => alert('Função de importar em desenvolvimento')}
+            onClick={() => toast.info('Função de importar em desenvolvimento')}
             className="bg-krav-card border border-krav-border text-krav-text hover:bg-black/5 dark:hover:bg-white/5 px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-colors shadow-sm"
           >
             <Download className="w-4 h-4 rotate-180" />

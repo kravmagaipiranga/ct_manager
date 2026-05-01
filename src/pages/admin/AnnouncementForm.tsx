@@ -17,6 +17,8 @@ export default function AnnouncementForm() {
   const announcements = useDataStore((state) => state.announcements);
   const addAnnouncement = useDataStore((state) => state.addAnnouncement);
 
+  const updateAnnouncement = useDataStore((state) => state.updateAnnouncement);
+
   const [announcementForm, setAnnouncementForm] = useState({ title: '', content: '', isPinned: false });
 
   useEffect(() => {
@@ -36,20 +38,27 @@ export default function AnnouncementForm() {
 
   const handleCreateAnnouncement = (e: React.FormEvent) => {
     e.preventDefault();
-    // Currently store doesn't have updateAnnouncement, so we only handle creation for now.
-    // If edit is needed, we'd need to add updateAnnouncement to store. For now, assuming new.
-    addAnnouncement({
-       title: announcementForm.title,
-       academyId: user?.academyId || '',
-       content: announcementForm.content,
-       isPinned: announcementForm.isPinned,
-       authorId: user?.id || 'admin_1',
-       authorName: user?.name || 'Admin',
-       id: Math.random().toString(36).substr(2, 9),
-       createdAt: new Date().toISOString()
-    } as any);
+    if (isEditing && id) {
+      updateAnnouncement(id, {
+         title: announcementForm.title,
+         content: announcementForm.content,
+         isPinned: announcementForm.isPinned,
+      });
+      toast.success('Aviso atualizado com sucesso!');
+    } else {
+      addAnnouncement({
+         title: announcementForm.title,
+         academyId: user?.academyId || '',
+         content: announcementForm.content,
+         isPinned: announcementForm.isPinned,
+         authorId: user?.id || 'admin_1',
+         authorName: user?.name || 'Admin',
+         id: Math.random().toString(36).substr(2, 9),
+         createdAt: new Date().toISOString()
+      } as any);
+      toast.success('Aviso criado com sucesso!');
+    }
     
-    toast.success('Aviso criado com sucesso!');
     navigate('/admin/events');
   };
 

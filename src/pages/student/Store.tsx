@@ -6,7 +6,7 @@ import { cn } from '../../lib/utils';
 
 export default function StudentStore() {
   const user = useAuthStore((state) => state.user);
-  const products = useDataStore((state) => state.products).filter(p => p.stock > 0 && p.academyId === user?.academyId);
+  const products = useDataStore((state) => state.products).filter(p => p.stock > 0 && (p.academyId === user?.academyId || !p.academyId));
   const placeOrder = useDataStore((state) => state.placeOrder);
   const [searchTerm, setSearchTerm] = useState('');
   

@@ -103,9 +103,7 @@ export default function InstructorDashboard() {
     .filter(chk => chk.student && chk.session);
 
   const handleApproveAll = () => {
-    if (window.confirm(`Tem certeza que deseja aprovar os ${pendingCheckins.length} check-ins pendentes?`)) {
-      pendingCheckins.forEach(c => approveCheckin(c.id));
-    }
+    pendingCheckins.forEach(c => approveCheckin(c.id));
   };
 
   const handleAddVisit = (e: React.FormEvent) => {

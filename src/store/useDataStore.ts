@@ -51,6 +51,8 @@ export interface DataState {
   // phase 5 actions
   registerForEvent: (eventId: string, studentId: string) => void;
   addAnnouncement: (announcement: Omit<Announcement, 'id' | 'createdAt'>) => void;
+  updateAnnouncement: (id: string, updates: Partial<Announcement>) => void;
+  deleteAnnouncement: (id: string) => void;
   addEvent: (event: Omit<AcademyEvent, 'id' | 'registeredCount'>) => void;
   
   // Add Appointment
@@ -351,6 +353,25 @@ export const useDataStore = create<DataState>((set, get) => ({
     appendToFirestore('announcements', a);
     return {
       announcements: [a, ...state.announcements]
+    };
+  }),
+
+  updateAnnouncement: (id, updates) => set((state) => {
+    const ann = state.announcements.find(a => a.id === id);
+    if(ann) {
+      appendToFirestore('announcements', { ...ann, ...updates });
+    }
+    return {
+      announcements: state.announcements.map(a => 
+        a.id === id ? { ...a, ...updates } : a
+      )
+    };
+  }),
+
+  deleteAnnouncement: (id) => set((state) => {
+    removeFromFirestore('announcements', id);
+    return {
+      announcements: state.announcements.filter(a => a.id !== id)
     };
   }),
 
