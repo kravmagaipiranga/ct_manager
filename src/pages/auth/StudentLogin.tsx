@@ -54,6 +54,16 @@ export default function StudentLogin() {
       const dbUser = updatedStudents.find(s => s.email.toLowerCase() === email.toLowerCase());
 
       if (dbUser && dbUser.role === 'STUDENT') {
+         if (dbUser.enrollmentStatus === 'PENDING') {
+           setError('Sua matrícula está em análise. Aguarde a aprovação da academia!');
+           await auth.signOut();
+           return;
+         }
+         if (dbUser.enrollmentStatus === 'SUSPENDED') {
+           setError('Sua conta está suspensa. Entre em contato com a secretaria.');
+           await auth.signOut();
+           return;
+         }
          login({ ...dbUser, mustChangePassword: password.length < 6 ? true : dbUser.mustChangePassword });
          navigate('/student/home');
       } else {
@@ -63,6 +73,14 @@ export default function StudentLogin() {
       if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential' || err.message.includes('auth/invalid-login-credentials')) {
          const localUser = students.find(s => s.email.toLowerCase() === email.toLowerCase() && (s.password === password || (!s.password && password === '123456')));
          if (localUser && localUser.role === 'STUDENT') {
+            if (localUser.enrollmentStatus === 'PENDING') {
+              setError('Sua matrícula está em análise. Aguarde a aprovação da academia!');
+              return;
+            }
+            if (localUser.enrollmentStatus === 'SUSPENDED') {
+              setError('Sua conta está suspensa. Entre em contato com a secretaria.');
+              return;
+            }
             try {
                await createUserWithEmailAndPassword(auth, email, safePassword);
                const { loadFromFirebase } = await import('../../store/syncFirebase');

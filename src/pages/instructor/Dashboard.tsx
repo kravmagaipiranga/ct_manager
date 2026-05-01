@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useDataStore } from '../../store/useDataStore';
 import { BeltBadge } from '../../components/shared/BeltBadge';
-import { CheckSquare, Check, X, Users, Clock, Plus, Target, UserPlus, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { CheckSquare, Check, X, Users, Clock, Plus, Target, UserPlus, AlertTriangle, CheckCircle2, CheckCircle, XCircle } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { Belt } from '../../types';
 import BirthdayWidget from '../../components/widgets/BirthdayWidget';
@@ -14,6 +14,7 @@ export default function InstructorDashboard() {
   const checkins = useDataStore((state) => state.checkins);
   const approveCheckin = useDataStore((state) => state.approveCheckin);
   const rejectCheckin = useDataStore((state) => state.rejectCheckin);
+  const updateStudent = useDataStore((state) => state.updateStudent);
 
   const addVisit = useDataStore((state) => state.addVisit);
 
@@ -23,6 +24,10 @@ export default function InstructorDashboard() {
   const allVisits = useDataStore((state) => state.visits);
 
   if (!user) return null;
+
+  const pendingReg = useMemo(() => {
+    return students.filter(s => s.academyId === user.academyId && s.role === 'STUDENT' && s.enrollmentStatus === 'PENDING');
+  }, [students, user.academyId]);
 
   const instructorVisits = useMemo(() => {
     let filtered = allVisits.filter(v => v.instructorId === user.id);
@@ -225,6 +230,34 @@ export default function InstructorDashboard() {
 
         {/* Check-ins e Aulas (Right Side) */}
         <div className="lg:col-span-2 flex flex-col gap-6">
+
+          {/* Matrículas Pendentes */}
+          <div className="bg-krav-card border border-krav-border rounded-xl flex-col shadow-sm">
+            <div className="px-5 py-4 border-b border-krav-border flex justify-between items-center shrink-0 bg-black/5 dark:bg-krav-card/5 rounded-t-xl">
+              <h2 className="text-sm font-bold uppercase tracking-wide flex items-center gap-2">
+                Matrículas Pendentes
+                {pendingReg.length > 0 && <span className="bg-krav-warning text-krav-bg px-2 py-0.5 rounded-full text-[10px]">{pendingReg.length}</span>}
+              </h2>
+            </div>
+            <div className="flex-1 p-0">
+              {pendingReg.length > 0 ? (
+                pendingReg.map(s => (
+                  <ListItem
+                    key={s.id}
+                    name={s.name}
+                    subtext={`Registrado em: ${new Date(s.createdAt).toLocaleDateString()}`}
+                    beltColor={(s.beltLevel?.toLowerCase() as any) || 'white'}
+                    onApprove={() => updateStudent(s.id, { enrollmentStatus: 'ACTIVE' })}
+                    onReject={() => updateStudent(s.id, { enrollmentStatus: 'SUSPENDED' })}
+                  />
+                ))
+              ) : (
+                <div className="p-6 text-center text-krav-muted text-sm italic">
+                  Nenhuma matrícula pendente.
+                </div>
+              )}
+            </div>
+          </div>
           
           {/* Aulas Hoje */}
           <div className="bg-krav-card border border-krav-border rounded-xl p-5 shadow-sm shrink-0">
@@ -405,6 +438,60 @@ export default function InstructorDashboard() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+interface ListItemProps {
+  name: string;
+  subtext: string;
+  beltColor: string;
+  onApprove: () => void;
+  onReject: () => void;
+}
+
+function ListItem({ 
+  name, 
+  subtext, 
+  beltColor, 
+  onApprove, 
+  onReject 
+}: ListItemProps) {
+  
+  const beltBorderColor: Record<string, string> = {
+    white: 'border-l-gray-300',
+    yellow: 'border-l-[#ffdf00]',
+    orange: 'border-l-[#ff8c00]',
+    green: 'border-l-[#008000]',
+    blue: 'border-l-[#0000ff]',
+    brown: 'border-l-[#8b4513]',
+    black: 'border-l-black',
+  };
+
+  const borderColor = beltBorderColor[beltColor] || 'border-l-gray-300';
+
+  return (
+    <div className="px-4 py-3 border-b border-krav-border flex flex-col sm:flex-row sm:items-center justify-between text-sm hover:bg-black/5 dark:hover:bg-krav-card/5 transition-colors gap-3">
+      <div className={cn('border-l-4 pl-3', borderColor)}>
+        <strong className="block text-krav-text text-sm">{name}</strong>
+        <span className="text-xs text-krav-muted mt-0.5 block">{subtext}</span>
+      </div>
+      <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+        <button 
+          onClick={onReject}
+          className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-colors"
+          title="Rejeitar"
+        >
+          <XCircle className="w-5 h-5" />
+        </button>
+        <button 
+          onClick={onApprove}
+          className="w-8 h-8 flex items-center justify-center rounded-lg bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-green-600 hover:text-white transition-colors"
+          title="Aprovar"
+        >
+          <CheckCircle className="w-5 h-5" />
+        </button>
+      </div>
     </div>
   );
 }
