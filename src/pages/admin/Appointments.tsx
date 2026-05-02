@@ -6,6 +6,7 @@ import { Appointment, AppointmentType, AppointmentStatus } from '../../types';
 import { cn } from '../../lib/utils';
 import { StatusPill } from '../../components/shared/StatusPill';
 import { exportToCSV } from '../../lib/csv';
+import { Pagination } from '../../components/shared/Pagination';
 
 export default function Appointments() {
   const authUser = useAuthStore(state => state.user);
@@ -25,6 +26,8 @@ export default function Appointments() {
 
   const [activeTab, setActiveTab] = useState<'UPCOMING' | 'PAST'>('UPCOMING');
   const [showForm, setShowForm] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 6;
 
   // Form State
   const [formData, setFormData] = useState({
@@ -73,6 +76,14 @@ export default function Appointments() {
     const isPast = new Date(a.date) < now;
     return activeTab === 'UPCOMING' ? (!isPast && a.status !== 'CANCELLED') : (isPast || a.status === 'CANCELLED');
   }).sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  const paginated = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE) || 1;
+
+  // Reset page when tab changes
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab]);
 
   const handleExport = () => {
     exportToCSV(
@@ -235,18 +246,18 @@ export default function Appointments() {
               ))}
             </div>
 
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-               {filtered.length === 0 && (
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 h-full pb-6">
+               {paginated.length === 0 && (
                  <div className="col-span-full py-16 text-center text-krav-muted bg-krav-card border border-dashed border-krav-border rounded-xl">
                     Nenhum agendamento encontrado para esta aba.
                  </div>
                )}
-               {filtered.map(app => {
+               {paginated.map(app => {
                  let clientName = app.isExternalClient ? app.externalClientName : students.find(s => s.id === app.studentId)?.name || 'Desconhecido';
                  let dateObj = new Date(app.date);
                  
                  return (
-                   <div key={app.id} className="bg-krav-card border border-krav-border rounded-xl p-5 shadow-sm flex flex-col gap-4 hover:border-krav-accent/30 transition-colors">
+                   <div key={app.id} className="bg-krav-card border border-krav-border rounded-xl p-5 shadow-sm flex flex-col gap-4 hover:border-krav-accent/30 transition-colors h-fit">
                      <div className="flex justify-between items-start">
                         <div className="flex flex-col">
                            <span className={cn(
@@ -299,6 +310,12 @@ export default function Appointments() {
                  )
                })}
             </div>
+            
+            {totalPages > 1 && (
+              <div className="pt-2">
+                <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+              </div>
+            )}
           </>
         )}
       </div>

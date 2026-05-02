@@ -8,6 +8,7 @@ import { cn } from '../../lib/utils';
 import { BeltBadge } from '../../components/shared/BeltBadge';
 import { ContactActions } from '../../components/shared/ContactActions';
 import { exportToCSV } from '../../lib/csv';
+import { Pagination } from '../../components/shared/Pagination';
 
 export default function Exams() {
   const user = useAuthStore((state) => state.user);
@@ -25,7 +26,16 @@ export default function Exams() {
   }, [allStudents, user]);
 
   // Filter only exams
-  const exams = events.filter(e => e.type === 'EXAM');
+  const exams = React.useMemo(() => events.filter(e => e.type === 'EXAM'), [events]);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 6;
+
+  const paginatedExams = React.useMemo(() => {
+    return exams.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+  }, [exams, currentPage]);
+
+  const totalPages = Math.ceil(exams.length / ITEMS_PER_PAGE) || 1;
 
   const navigate = useNavigate();
 
@@ -59,15 +69,15 @@ export default function Exams() {
         </button>
       </div>
 
-      <div className="flex flex-col xl:flex-row gap-6 mb-8">
-        <div className="flex-1 overflow-y-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-12">
-            {exams.map(exam => (
-              <div key={exam.id} className="bg-krav-card border border-krav-border rounded-xl p-5 shadow-sm flex flex-col gap-4 relative overflow-hidden group">
+      <div className="flex flex-col gap-6 mb-8 flex-1 overflow-hidden">
+        <div className="flex-1 overflow-y-auto min-h-0 bg-krav-card rounded-xl border border-krav-border shadow-sm flex flex-col">
+          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 flex-1 overflow-y-auto">
+            {paginatedExams.map(exam => (
+              <div key={exam.id} className="bg-krav-bg border border-krav-border rounded-xl p-5 shadow-sm flex flex-col gap-4 relative overflow-hidden group h-fit">
                 <div className="absolute top-0 left-0 w-1 bg-krav-accent h-full opacity-50"></div>
                 <div className="flex justify-between items-start pl-2">
                    <div className="flex flex-col">
-                     <h3 className="font-bold text-lg leading-tight text-krav-text">{exam.title}</h3>
+                     <h3 className="font-bold text-lg leading-tight text-krav-text group-hover:text-krav-accent transition-colors">{exam.title}</h3>
                      <div className="flex items-center gap-1.5 mt-2">
                        <Medal className="w-4 h-4 text-krav-accent" />
                        <span className="text-xs font-semibold text-krav-text uppercase tracking-wider">Exame de Graduação</span>
@@ -77,13 +87,13 @@ export default function Exams() {
                 
                 <div className="pl-2 flex-col flex gap-2">
                    <p className="text-xs text-krav-muted line-clamp-2">{exam.description}</p>
-                   <p className="text-[10px] text-krav-muted font-bold mt-1 bg-krav-bg self-start px-2 py-1 rounded">
+                   <p className="text-[10px] text-krav-muted font-bold mt-1 bg-krav-card self-start px-2 py-1 rounded border border-krav-border">
                      {(exam.allowedStudentIds || []).length} alunos liberados
                    </p>
                 </div>
 
                 <div className="mt-auto pt-4 border-t border-krav-border grid grid-cols-2 gap-3 pl-2">
-                   <div className="bg-krav-bg px-3 py-2 rounded-lg flex flex-col gap-1">
+                   <div className="bg-krav-card border border-krav-border px-3 py-2 rounded-lg flex flex-col gap-1">
                      <span className="text-[10px] uppercase font-bold text-krav-muted tracking-wide flex items-center gap-1">
                        <CalendarIcon className="w-3 h-3" /> Data
                      </span>
@@ -92,7 +102,7 @@ export default function Exams() {
                      </span>
                    </div>
                    
-                   <div className="bg-krav-bg px-3 py-2 rounded-lg flex flex-col gap-1">
+                   <div className="bg-krav-card border border-krav-border px-3 py-2 rounded-lg flex flex-col gap-1">
                      <span className="text-[10px] uppercase font-bold text-krav-muted tracking-wide flex items-center gap-1">
                        <Users className="w-3 h-3" /> Inscritos
                      </span>
@@ -110,12 +120,18 @@ export default function Exams() {
               </div>
             ))}
 
-            {exams.length === 0 && (
-               <div className="col-span-full py-12 text-center text-sm text-krav-muted border border-dashed border-krav-border rounded-xl bg-krav-card">
+            {paginatedExams.length === 0 && (
+               <div className="col-span-full py-12 text-center text-sm text-krav-muted border border-dashed border-krav-border rounded-xl bg-krav-bg">
                  Nenhum exame de graduação agendado no momento. <br/><span className="text-xs opacity-70">Crie um através do menu "Eventos Gerais".</span>
                </div>
             )}
           </div>
+
+          {totalPages > 1 && (
+            <div className="p-4 border-t border-krav-border shrink-0">
+              <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+            </div>
+          )}
         </div>
       </div>
     </div>

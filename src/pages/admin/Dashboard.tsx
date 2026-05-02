@@ -171,65 +171,6 @@ export default function Dashboard() {
         </div>
       </section>
 
-      {/* Financial Section */}
-      <section className="col-span-1 md:col-span-2 lg:col-span-2 flex flex-col gap-4 sm:gap-6">
-        {/* Chart Card */}
-        <div className="bg-krav-card border border-krav-border rounded-xl p-5 shadow-sm">
-          <h2 className="text-sm font-bold uppercase tracking-wide mb-4 text-krav-text flex items-center gap-2">
-            Saúde Financeira (6 meses)
-          </h2>
-          
-          <div className="h-[150px] w-full flex items-end gap-3 pt-4">
-            <div className="flex-1 bg-krav-accent opacity-60 rounded-t-sm hover:opacity-100 transition-opacity" style={{ height: '40%' }}></div>
-            <div className="flex-1 bg-krav-accent opacity-60 rounded-t-sm hover:opacity-100 transition-opacity" style={{ height: '55%' }}></div>
-            <div className="flex-1 bg-krav-accent opacity-60 rounded-t-sm hover:opacity-100 transition-opacity" style={{ height: '52%' }}></div>
-            <div className="flex-1 bg-krav-accent opacity-60 rounded-t-sm hover:opacity-100 transition-opacity" style={{ height: '68%' }}></div>
-            <div className="flex-1 bg-krav-accent opacity-60 rounded-t-sm hover:opacity-100 transition-opacity" style={{ height: '85%' }}></div>
-            <div className="flex-1 bg-krav-accent opacity-100 rounded-t-sm shadow-[0_0_15px_rgba(0,0,142,0.4)]" style={{ height: '92%' }}></div>
-          </div>
-          
-          <div className="flex justify-between mt-3 text-[10px] text-krav-muted font-bold tracking-wider">
-            <span>DEZ</span>
-            <span>JAN</span>
-            <span>FEV</span>
-            <span>MAR</span>
-            <span>ABR</span>
-            <span className="text-krav-accent">MAI</span>
-          </div>
-        </div>
-
-        {/* Delinquency List */}
-        <div className="flex-1 bg-krav-card border border-krav-border rounded-xl p-5 shadow-sm">
-          <h2 className="text-sm font-bold uppercase tracking-wide mb-4 text-krav-danger flex items-center gap-2">
-            Inadimplência Crítica
-          </h2>
-          
-          <div className="flex flex-col gap-0 pr-2">
-            {financials.filter(f => {
-              const s = students.find(st => st.id === f.studentId);
-              return s?.academyId === user?.academyId && f.status === 'OVERDUE';
-            }).length > 0 ? (
-              financials.filter(f => {
-                const s = students.find(st => st.id === f.studentId);
-                return s?.academyId === user?.academyId && f.status === 'OVERDUE';
-              }).map(f => {
-                const s = students.find(st => st.id === f.studentId);
-                return (
-                  <div key={f.id} className="flex justify-between items-center py-3 border-b border-krav-border text-sm hover:bg-black/5 dark:hover:bg-krav-card/5 transition-colors px-2 rounded -mx-2">
-                    <span className="font-bold text-krav-text">{s?.name}</span>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest bg-red-500/10 text-red-500 border border-red-500/20">Atrasado</span>
-                  </div>
-                );
-              })
-            ) : (
-              <div className="py-8 text-center text-krav-muted text-xs italic opacity-70">
-                Nenhuma inadimplência crítica.
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
     </div>
   );
 }
