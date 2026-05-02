@@ -256,8 +256,7 @@ export const useDataStore = create<DataState>((set, get) => ({
     return { checkins: state.checkins.map(chk => chk.id === checkinId ? { ...chk, status: 'REJECTED' } : chk) };
   }),
   deleteCheckin: (checkinId) => set((state) => {
-    // We would really delete from firestore here, but for MVP local state works.
-    // If using firestore, we'd need a deleteFromFirestore helper. 
+    removeFromFirestore('checkins', checkinId);
     return { checkins: state.checkins.filter(chk => chk.id !== checkinId) };
   }),
 

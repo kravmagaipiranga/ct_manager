@@ -3,7 +3,7 @@ import { Toaster } from 'sonner';
 import { useAuthStore } from './store/useAuthStore';
 import { useDataStore } from './store/useDataStore';
 import { useEffect } from 'react';
-import { loadFromFirebase } from './store/syncFirebase';
+import { loadFromFirebase, startFirestoreSync } from './store/syncFirebase';
 import { auth } from './lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import StudentLogin from './pages/auth/StudentLogin';
@@ -49,7 +49,9 @@ export default function App() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
+    const unsubSync = startFirestoreSync();
+
+    const unsubAuth = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         await loadFromFirebase();
         // Force sync Zustand store after loading
@@ -61,7 +63,10 @@ export default function App() {
         }
       }
     });
-    return () => unsub();
+    return () => {
+      unsubAuth();
+      unsubSync();
+    };
   }, []);
 
   // Automatic routing if already authenticated but sitting on login pages

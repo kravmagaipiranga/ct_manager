@@ -1,4 +1,4 @@
-import { collection, doc, getDocs, setDoc, writeBatch } from 'firebase/firestore';
+import { collection, doc, onSnapshot, writeBatch } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useDataStore } from './useDataStore';
 
@@ -40,66 +40,57 @@ export const syncToFirebase = async () => {
    }
 };
 
-export const loadFromFirebase = async () => {
-    try {
-        const loadCol = async (colName: string) => {
-            try {
-                const snap = await getDocs(collection(db, colName));
-                return snap.docs.map(d => d.data());
-            } catch(e) {
-                console.error(`Error loading collection ${colName} from Firebase`, e);
-                return [];
+export const startFirestoreSync = () => {
+    const collections = [
+        { name: 'users', key: 'students' },
+        { name: 'classes', key: 'classes' },
+        { name: 'checkins', key: 'checkins' },
+        { name: 'products', key: 'products' },
+        { name: 'orders', key: 'orders' },
+        { name: 'financials', key: 'financials' },
+        { name: 'events', key: 'events' },
+        { name: 'announcements', key: 'announcements' },
+        { name: 'appointments', key: 'appointments' },
+        { name: 'classLogs', key: 'classLogs' },
+        { name: 'visits', key: 'visits' },
+        { name: 'academiesSettings', key: 'academiesSettings' },
+    ];
+
+    const unsubscribers: (() => void)[] = [];
+
+    collections.forEach(({ name, key }) => {
+        const unsub = onSnapshot(collection(db, name), (snapshot) => {
+            const data = snapshot.docs.map(doc => doc.data());
+            if (data.length > 0 || snapshot.metadata.fromCache === false) {
+                const state = useDataStore.getState();
+                const currentData = (state as any)[key] as any[];
+                
+                // Merge remote data into local state, keeping IDs unique
+                const map = new Map();
+                // We trust Firestore more as the source of truth
+                data.forEach(item => map.set(item.id, item));
+                
+                useDataStore.setState({ [key]: Array.from(map.values()) });
             }
-        };
-
-        const students = await loadCol('users');
-        const classes = await loadCol('classes');
-        const checkins = await loadCol('checkins');
-        const products = await loadCol('products');
-        const orders = await loadCol('orders');
-        const financials = await loadCol('financials');
-        const events = await loadCol('events');
-        const announcements = await loadCol('announcements');
-        const appointments = await loadCol('appointments');
-        const classLogs = await loadCol('classLogs');
-        const visits = await loadCol('visits');
-        const academiesSettings = await loadCol('academiesSettings');
-        const globals = await loadCol('globals');
-        
-        const state = useDataStore.getState();
-
-        let newCurriculumTexts = state.curriculumTexts;
-        const curriculumDoc = globals.find((g: any) => g.id === 'curriculumTexts');
-        if (curriculumDoc && curriculumDoc.data) {
-           newCurriculumTexts = { ...state.curriculumTexts, ...curriculumDoc.data };
-        }
-
-        // Merge Firebase data with current mock data, favoring Firebase
-        const mergeArrays = (local: any[], remote: any[]) => {
-            const map = new Map();
-            local.forEach(i => map.set(i.id, i));
-            remote.forEach(i => map.set(i.id, i));
-            return Array.from(map.values());
-        };
-
-        useDataStore.setState({
-            students: mergeArrays(state.students, students),
-            classes: mergeArrays(state.classes, classes),
-            checkins: mergeArrays(state.checkins, checkins),
-            products: mergeArrays(state.products, products),
-            orders: mergeArrays(state.orders, orders),
-            financials: mergeArrays(state.financials, financials),
-            events: mergeArrays(state.events, events),
-            announcements: mergeArrays(state.announcements, announcements),
-            appointments: mergeArrays(state.appointments, appointments),
-            classLogs: mergeArrays(state.classLogs, classLogs),
-            visits: mergeArrays(state.visits, visits),
-            academiesSettings: academiesSettings.length > 0 ? mergeArrays(state.academiesSettings, academiesSettings) : state.academiesSettings,
-            curriculumTexts: newCurriculumTexts
+        }, (error) => {
+            console.error(`Error in snapshot listener for ${name}:`, error);
         });
+        unsubscribers.push(unsub);
+    });
 
-        console.log("Data successfully loaded from Firebase");
-    } catch(e) {
-        console.error("Critical error in loadFromFirebase", e);
-    }
+    // Special listener for globals
+    const unsubGlobals = onSnapshot(collection(db, 'globals'), (snapshot) => {
+        const curriculumDoc = snapshot.docs.find(d => d.id === 'curriculumTexts');
+        if (curriculumDoc && curriculumDoc.data()?.data) {
+            useDataStore.setState({ curriculumTexts: curriculumDoc.data()?.data });
+        }
+    });
+    unsubscribers.push(unsubGlobals);
+
+    return () => unsubscribers.forEach(unsub => unsub());
+};
+
+// Legacy support if needed elsewhere
+export const loadFromFirebase = async () => {
+    console.log("loadFromFirebase is now handled by startFirestoreSync listeners");
 };
