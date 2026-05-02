@@ -65,6 +65,9 @@ export interface User {
   
   // Controle de graduação
   lastExamDate?: string;
+
+  // Notificações
+  lastNotificationViewedAt?: string;
 }
 
 export type VisitType = 'TRIAL' | 'VISIT';

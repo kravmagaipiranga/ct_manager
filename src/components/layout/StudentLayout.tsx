@@ -91,8 +91,11 @@ function ForcePasswordChange({ onComplete }: { onComplete: () => void }) {
   );
 }
 
+import { useNotifications } from '../../hooks/useNotifications';
+
 export default function StudentLayout() {
   const user = useAuthStore((state) => state.user);
+  const updateStudent = useDataStore((state) => state.updateStudent);
   const login = useAuthStore((state) => state.login);
   const logout = useAuthStore((state) => state.logout);
   const navigate = useNavigate();
@@ -100,6 +103,9 @@ export default function StudentLayout() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
+
+  const notifications = useNotifications();
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   useEffect(() => {
     if (document.documentElement.classList.contains('dark')) {
@@ -134,14 +140,14 @@ export default function StudentLayout() {
     navigate('/login');
   };
 
-  const MOCK_NOTIFICATIONS = [
-    { id: 1, title: 'Anúncio Novo', text: 'Seminário de Defesa Contra Faca aberto para inscrições!', time: '2h', read: false },
-    { id: 2, title: 'Check-in Aprovado', text: 'Seu check-in na aula de 19:00 foi aprovado.', time: '1d', read: true },
-    { id: 3, title: 'Mensalidade', text: 'Seu plano vence amanhã, verifique o financeiro.', time: '2d', read: true },
-    { id: 4, title: 'Parabéns!', text: 'Feliz aniversário! Desejamos muitas felicidades e treino!', time: '3d', read: true },
-  ];
-
-  const unreadCount = MOCK_NOTIFICATIONS.filter(n => !n.read).length;
+  const handleToggleNotifications = () => {
+    if (!showNotifications && unreadCount > 0 && user) {
+      const now = new Date().toISOString();
+      updateStudent(user.id, { lastNotificationViewedAt: now });
+      useAuthStore.getState().login({ ...user, lastNotificationViewedAt: now });
+    }
+    setShowNotifications(!showNotifications);
+  };
 
   return (
     <main className="flex flex-col min-h-screen w-full bg-krav-bg text-krav-text font-sans relative md:h-screen transition-colors">
@@ -182,7 +188,7 @@ export default function StudentLayout() {
           </button>
           
           <button 
-            onClick={() => setShowNotifications(!showNotifications)}
+            onClick={handleToggleNotifications}
             className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full text-krav-muted hover:text-krav-text hover:bg-black/5 dark:hover:bg-krav-card/5 transition-colors relative"
           >
              <Bell className="w-4 h-4 md:w-5 md:h-5" />
@@ -215,15 +221,19 @@ export default function StudentLayout() {
                 <span className="text-[10px] bg-krav-accent text-white px-2 py-0.5 rounded-full">{unreadCount} novas</span>
               </div>
               <div className="max-h-80 overflow-y-auto">
-                {MOCK_NOTIFICATIONS.map((notif) => (
-                  <div key={notif.id} className={cn("p-4 border-b border-krav-border last:border-0 flex flex-col gap-1 hover:bg-black/5 dark:hover:bg-krav-card/5 transition-colors cursor-pointer", !notif.read && "bg-blue-500/5 dark:bg-blue-500/10")}>
-                    <div className="flex items-center justify-between">
-                      <span className={cn("text-xs font-bold", !notif.read ? "text-krav-text" : "text-krav-muted")}>{notif.title}</span>
-                      <span className="text-[10px] text-krav-muted">{notif.time}</span>
+                {notifications.length === 0 ? (
+                  <div className="p-8 text-center text-xs text-krav-muted italic">Nenhuma notificação recente.</div>
+                ) : (
+                  notifications.map((notif) => (
+                    <div key={notif.id} className={cn("p-4 border-b border-krav-border last:border-0 flex flex-col gap-1 hover:bg-black/5 dark:hover:bg-krav-card/5 transition-colors cursor-pointer", !notif.read && "bg-blue-500/5 dark:bg-blue-500/10")}>
+                      <div className="flex items-center justify-between">
+                        <span className={cn("text-xs font-bold", !notif.read ? "text-krav-text" : "text-krav-muted")}>{notif.title}</span>
+                        <span className="text-[10px] text-krav-muted">{notif.time}</span>
+                      </div>
+                      <p className="text-xs text-krav-muted leading-relaxed">{notif.text}</p>
                     </div>
-                    <p className="text-xs text-krav-muted leading-relaxed">{notif.text}</p>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           )}

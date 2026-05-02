@@ -40,8 +40,11 @@ const ALL_NAV_ITEMS = [
   { label: 'Configurações', path: '/admin/settings', icon: Settings },
 ];
 
+import { useNotifications } from '../../hooks/useNotifications';
+
 export default function AdminLayout() {
   const user = useAuthStore((state) => state.user);
+  const updateStudent = useDataStore((state) => state.updateStudent);
   const logout = useAuthStore((state) => state.logout);
   const academiesSettings = useDataStore((state) => state.academiesSettings);
   const settings = academiesSettings.find(s => s.id === user?.academyId) || academiesSettings[0];
@@ -51,6 +54,9 @@ export default function AdminLayout() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
+
+  const notifications = useNotifications();
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   useEffect(() => {
     if (document.documentElement.classList.contains('dark')) {
@@ -89,12 +95,16 @@ export default function AdminLayout() {
     ? ALL_NAV_ITEMS.filter(i => !['Configurações'].includes(i.label))
     : ALL_NAV_ITEMS;
 
-  const MOCK_NOTIFICATIONS = [
-    { id: 1, title: 'Alerta Financeiro', text: '7 alunos em atraso neste mês.', time: '10m', read: false },
-    { id: 2, title: 'Check-in Pendente', text: '5 alunos aguardando aprovação na aula de 19:00.', time: '1h', read: false },
-  ];
-
-  const unreadCount = MOCK_NOTIFICATIONS.filter(n => !n.read).length;
+  const handleToggleNotifications = () => {
+    if (!showNotifications && unreadCount > 0 && user) {
+      // Mark as read by updating the user's last viewed timestamp
+      const now = new Date().toISOString();
+      updateStudent(user.id, { lastNotificationViewedAt: now });
+      // Update auth store as well so the UI reflects it immediately
+      useAuthStore.getState().login({ ...user, lastNotificationViewedAt: now });
+    }
+    setShowNotifications(!showNotifications);
+  };
 
   return (
     <main className="flex flex-col h-screen w-full bg-krav-bg text-krav-text font-sans relative overflow-hidden transition-colors">
@@ -136,7 +146,7 @@ export default function AdminLayout() {
                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
             <button 
-              onClick={() => setShowNotifications(!showNotifications)}
+              onClick={handleToggleNotifications}
               className="w-10 h-10 flex items-center justify-center rounded-full text-krav-muted hover:text-krav-text hover:bg-black/5 dark:hover:bg-krav-card/5 transition-colors relative"
             >
                <Bell className="w-5 h-5" />
@@ -153,15 +163,19 @@ export default function AdminLayout() {
                   <span className="text-[10px] bg-krav-accent text-white px-2 py-0.5 rounded-full">{unreadCount} novas</span>
                 </div>
                 <div className="max-h-80 overflow-y-auto w-full">
-                  {MOCK_NOTIFICATIONS.map((notif) => (
-                    <div key={notif.id} className={cn("p-4 border-b border-krav-border last:border-0 flex flex-col gap-1 hover:bg-black/5 dark:hover:bg-krav-card/5 transition-colors cursor-pointer", !notif.read && "bg-blue-500/5 dark:bg-blue-500/10")}>
-                      <div className="flex items-center justify-between">
-                        <span className={cn("text-xs font-bold", !notif.read ? "text-krav-text" : "text-krav-muted")}>{notif.title}</span>
-                        <span className="text-[10px] text-krav-muted">{notif.time}</span>
+                  {notifications.length === 0 ? (
+                    <div className="p-8 text-center text-xs text-krav-muted italic">Nenhuma notificação recente.</div>
+                  ) : (
+                    notifications.map((notif) => (
+                      <div key={notif.id} className={cn("p-4 border-b border-krav-border last:border-0 flex flex-col gap-1 hover:bg-black/5 dark:hover:bg-krav-card/5 transition-colors cursor-pointer", !notif.read && "bg-blue-500/5 dark:bg-blue-500/10")}>
+                        <div className="flex items-center justify-between">
+                          <span className={cn("text-xs font-bold", !notif.read ? "text-krav-text" : "text-krav-muted")}>{notif.title}</span>
+                          <span className="text-[10px] text-krav-muted">{notif.time}</span>
+                        </div>
+                        <p className="text-xs text-krav-muted leading-relaxed">{notif.text}</p>
                       </div>
-                      <p className="text-xs text-krav-muted leading-relaxed">{notif.text}</p>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               </div>
             )}
